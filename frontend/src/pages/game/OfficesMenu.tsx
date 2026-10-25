@@ -11,6 +11,7 @@ export const OFFICES = [
   { to: '/office/goccs', label: 'GOCCs', icon: '🏭', text: 'Government corporations: their chiefs, boards, dividends, and troubles.' },
   { to: '/office/laws', label: 'Laws & Projects', icon: '⚖', text: 'Every law you signed and every project being built.' },
   { to: '/office/world', label: 'Foreign Affairs & Provinces', icon: '🌏', text: 'Relations with other countries, and the governors of each province.' },
+  { to: '/office/stats', label: 'Statistics', icon: '📈', text: 'Charts of approval, prices, debt, the peso, and regional polls across your whole term.' },
   { to: '/office/record', label: 'Achievements & History', icon: '🏅', text: 'Badges you have earned, and how the history books are writing your presidency.' },
 ];
 

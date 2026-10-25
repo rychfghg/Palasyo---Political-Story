@@ -7,6 +7,8 @@ import { useUiStore } from '@/app/store/uiStore';
 import { peso } from '@/features/economy/utils/finance';
 import { Modal } from '@/shared/components/ui/Modal';
 import { Portrait } from '@/shared/components/ui/Portrait';
+import { warningsFor } from '@/features/economy/components/Warnings';
+import { messageTemplate } from '@/features/game-engine/engine/extras';
 
 const up = (x: string) => x.toUpperCase();
 
@@ -46,10 +48,22 @@ export function FrontPage() {
   const net = r.revenue - r.spending;
   const polls = pollResults(s);
   const approval = Math.round(s.economy?.approval ?? 50);
+  // Sort the month's notes into the summary's sections.
+  const isBank = (n: string) => /Bangko Sentral|reserves|peso (added|took)|policy rate/i.test(n);
+  const isAch = (n: string) => n.includes('🏅');
+  const isPromise = (n: string) => /^Promise (kept|broken)/.test(n);
+  const isPeople = (n: string) => /skipped|dinner with|unusually quiet|stopped answering|caucus|fundraiser|procedural motion|never answered|was not answered|went unanswered|took your silence/i.test(n);
+  const bank = r.notes.filter(isBank);
+  const achievements = r.notes.filter(isAch);
+  const promises = r.notes.filter(isPromise);
+  const people = r.notes.filter(isPeople);
+  const other = r.notes.filter((n) => !isBank(n) && !isAch(n) && !isPromise(n) && !isPeople(n));
+  const texts = (s.inbox ?? []).filter((m) => m.month === r.month && m.answered === undefined && !m.expired);
+  const warnings = warningsFor(s);
   const mood = !top ? 'neutral' : top.approval > 1 ? 'happy' : top.approval < -1 ? 'worried' : 'neutral';
 
   return (
-    <Modal title={`${monthLabel(r.month + 1)} · Morning papers`} kicker="Mga Pahayagan · The front pages" onClose={() => setSeen(r.month)} className="frontpage-modal">
+    <Modal title={`${monthLabel(r.month)} in review`} kicker="Buod ng Buwan · Month summary" onClose={() => setSeen(r.month)} className="frontpage-modal">
       <div className="papers">
         {[true, false].map((friendly) => {
           const story = top ? slant(top, friendly, last, t) : { head: friendly ? 'A QUIET MONTH AT THE PALASYO' : 'WHERE IS THE PRESIDENT?', deck: friendly ? 'The President works behind closed doors.' : 'Critics ask what the Palasyo did all month.' };
@@ -89,24 +103,52 @@ export function FrontPage() {
         })}
       </div>
 
-      <section className="paper-econ">
-        <b>Ulat Pang-ekonomiya · {monthLabel(r.month)}</b>
-        <div className="month-summary__row">
-          <span>Revenue <b>{peso(r.revenue)}</b></span>
-          <span>Spending <b>{peso(r.spending)}</b></span>
-          <span className={net < 0 ? 'is-bad' : 'is-good'}>{net < 0 ? 'Deficit' : 'Surplus'} <b>{peso(Math.abs(net))}</b></span>
-          {r.borrowed > 0 && <span className="is-bad">Borrowed <b>{peso(r.borrowed)}</b></span>}
-        </div>
-        {r.notes.length > 0 && (
-          <ul>
-            {r.notes.map((n, i) => (
-              <li key={i}>{n}</li>
-            ))}
-          </ul>
+      <div className="summary-grid">
+        <section className="paper-econ">
+          <b>💰 Ulat Pang-ekonomiya · {monthLabel(r.month)}</b>
+          <div className="month-summary__row">
+            <span>Revenue <b>{peso(r.revenue)}</b></span>
+            <span>Spending <b>{peso(r.spending)}</b></span>
+            <span className={net < 0 ? 'is-bad' : 'is-good'}>{net < 0 ? 'Deficit' : 'Surplus'} <b>{peso(Math.abs(net))}</b></span>
+            {r.borrowed > 0 && <span className="is-bad">Borrowed <b>{peso(r.borrowed)}</b></span>}
+          </div>
+          {other.length > 0 && <ul>{other.map((n, i) => <li key={i}>{n}</li>)}</ul>}
+        </section>
+        {s.centralBank && (
+          <section className="paper-econ">
+            <b>🏦 Bangko Sentral</b>
+            <p>{s.centralBank.lastAction}</p>
+            <p className="muted">₱{s.centralBank.peso.toFixed(2)} to the dollar · rate {s.centralBank.rate.toFixed(2)}%</p>
+            {bank.length > 0 && <ul>{bank.map((n, i) => <li key={i}>{n}</li>)}</ul>}
+          </section>
         )}
-      </section>
+        {texts.length > 0 && (
+          <section className="paper-econ">
+            <b>📱 New texts · open the phone in the side bar to reply</b>
+            <ul>{texts.map((m) => { const tpl = messageTemplate(m.tpl); return tpl ? <li key={m.id}><b>{fill(tpl.from, t)}</b>: {fill(tpl.text, t).slice(0, 90)}{fill(tpl.text, t).length > 90 ? '…' : ''}</li> : null; })}</ul>
+          </section>
+        )}
+        {(achievements.length > 0 || promises.length > 0) && (
+          <section className="paper-econ">
+            <b>🏅 Achievements & promises</b>
+            <ul>{[...achievements, ...promises].map((n, i) => <li key={i}>{n}</li>)}</ul>
+          </section>
+        )}
+        {warnings.length > 0 && (
+          <section className="paper-econ is-warn">
+            <b>⚠ Babala · Warnings</b>
+            <ul>{warnings.map((w) => <li key={w.id} className={w.level === 'danger' ? 'is-danger' : ''}><b>{w.title}.</b> {w.text}</li>)}</ul>
+          </section>
+        )}
+        {people.length > 0 && (
+          <section className="paper-econ">
+            <b>👥 In the corridors</b>
+            <ul>{people.map((n, i) => <li key={i}>{n}</li>)}</ul>
+          </section>
+        )}
+      </div>
       <div className="wizard-foot">
-        <span className="muted">Every month, the papers cover your biggest decision.</span>
+        <span className="muted">Everything that happened last month, in one place.</span>
         <button className="btn btn--primary btn--small" onClick={() => setSeen(r.month)}>Read the Agenda</button>
       </div>
     </Modal>

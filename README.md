@@ -113,6 +113,13 @@ The game runs entirely in the browser. No server, account, or internet connectio
 - **State of the Nation Address** — every July: choose claims (fact-checked), promises (checked a year later), and who to blame.
 - **Social media trends** — trending hashtags react to your decisions.
 
+### Guidance and insight
+- **Tutorial** — a guided tour on your first visit to the desk, and hover tips on every number in the header.
+- **Month summary** — one screen at the end of each month: both newspapers, the economy, the Bangko Sentral, new texts, achievements, promises, warnings, and who is drifting away from you.
+- **Statistics** — charts of approval, inflation, unemployment, debt, the peso, growth, and regional polls across your whole term, with markers on headline decisions.
+- **Cabinet meetings as scenes** — your secretaries argue around the table, each for one option. The one you back trusts you more; those you pass over remember.
+- **Election campaigns** — before the 2030 midterms and the 2033 race, choose up to four provinces on the map, a budget, and a message, and see the expected poll gains before launching.
+
 ### Atmosphere
 - **Situation map** — storms crossing the islands, protests, opposition governors, and newly opened projects.
 - **Ambient sound** — a generated soundtrack that darkens during crises (off by default).
@@ -231,10 +238,7 @@ Run inside `frontend/`:
 ## Roadmap
 
 - [ ] Online accounts and cloud saves with the Spring Boot backend
-- [ ] Tutorial and tooltips for first-time players
-- [ ] Balance pass across difficulties
 - [ ] Mobile layout and accessibility options
-- [ ] Statistics screen with charts across the whole term
 - [ ] More endings: a martial-law regime branch and an exile chapter
 
 ---

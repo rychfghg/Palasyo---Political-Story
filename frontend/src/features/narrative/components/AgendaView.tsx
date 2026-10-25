@@ -14,6 +14,7 @@ import { AdviserReactions } from '@/features/institutions/components/AdviserReac
 import { FrontPage, PollsCard } from './FrontPage';
 import { DraftingTable } from '@/features/extras/components/DraftingTable';
 import { SituationMap, SocialTrends } from '@/features/extras/components/LiveWorld';
+import { CabinetScene } from '@/features/extras/components/CabinetScene';
 
 export const CATEGORY_LABEL: Record<EventCategory, string> = {
   family: 'Pamilya · Family',
@@ -122,7 +123,9 @@ function EventCard({ eventId }: { eventId: string }) {
       )}
 
       {event.draft && <DraftingTable event={event} />}
-      {!event.draft && <ul className="choices">
+      {!event.draft && event.category === 'cabinet' && choices.length >= 2 && s.cabinet.filter((c) => c.nomineeId).length >= 3 ? (
+        <CabinetScene event={event} choices={choices} />
+      ) : !event.draft && <ul className="choices">
         {choices.map((c) => (
           <li key={c.id}>
             <button className="choice" onClick={() => choose(event.id, c.id)}>

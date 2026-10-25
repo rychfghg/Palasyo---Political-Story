@@ -13,7 +13,7 @@ interface Warning {
 }
 
 /** The state of the nation, in plain alarms. */
-function warningsFor(s: CampaignState): Warning[] {
+export function warningsFor(s: CampaignState): Warning[] {
   const e = s.economy;
   if (!e) return [];
   const out: Warning[] = [];
@@ -52,7 +52,9 @@ export function Warnings() {
   if (!list.length) return null;
 
   const budgetPending = useGameStore.getState().phase === 'presidency' && !s.budgetSubmitted && s.month < 1;
-  const showModal = open || (acknowledged !== s.month && !reviewPending && !cabinetOpen && !budgetPending);
+  // Warnings are listed in the month summary; this chip reopens them on demand.
+  void acknowledged; void reviewPending; void cabinetOpen; void budgetPending;
+  const showModal = open;
   const close = () => {
     setAcknowledged(s.month);
     setOpen(false);

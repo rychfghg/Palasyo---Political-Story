@@ -49,6 +49,7 @@ export function answerMessage(s: CampaignState, id: string, option: number): str
   const tpl = msg && messageTemplate(msg.tpl);
   if (!msg || !tpl || msg.answered !== undefined || msg.expired) return '';
   const opt = tpl.options[option];
+  if (!opt) return '';
   const notes = applyLoose(s, opt.effects, `msg:${tpl.id}:${option}`);
   const outcome = fill(opt.outcome, tokens(s));
   s.inbox = (s.inbox ?? []).map((m) => (m.id === id ? { ...m, answered: option, read: true, outcome } : m));

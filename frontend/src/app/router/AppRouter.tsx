@@ -20,6 +20,7 @@ import { GoccView } from '@/features/institutions/components/GoccView';
 import { WorldView } from '@/features/extras/components/WorldView';
 import { RecordView } from '@/features/extras/components/RecordView';
 import { LegacyGame } from '@/features/extras/components/LegacyGame';
+import { StatsView } from '@/features/extras/components/StatsView';
 
 export function AppRouter() {
   return (
@@ -45,6 +46,7 @@ export function AppRouter() {
             <Route path="goccs" element={<GoccView />} />
             <Route path="world" element={<WorldView />} />
             <Route path="record" element={<RecordView />} />
+            <Route path="stats" element={<StatsView />} />
           </Route>
           <Route path="legacy" element={<LegacyGame />} />
           <Route path="*" element={<Navigate to="/" replace />} />

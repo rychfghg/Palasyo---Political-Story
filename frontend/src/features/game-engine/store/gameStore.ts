@@ -7,7 +7,7 @@ import { INITIAL_POLITICS, buildQueue, monthTick, openEvent, resolveChoice } fro
 import { monthLabel } from '../engine/calendar';
 import type { CampaignState, EventReport } from '../types/campaign';
 import { answerMessage, applyLoose, deliverSona } from '../engine/extras';
-import { draftEffects } from '../engine/world';
+import { CAMPAIGN_BUDGET, draftEffects, runCampaign, type CampaignBudget, type CampaignMessage } from '../engine/world';
 import type { Effects } from '@/features/narrative/types/event';
 import { appointGovernor, auditGocc, createGocc, initCentralBank, initGoccs, pressureBank, replaceCeo, type BankRequest } from '../engine/institutions';
 import type { Official } from '../types/campaign';
@@ -92,6 +92,10 @@ interface GameState extends Omit<CampaignState, 'player' | 'partyId' | 'tags' | 
   /** Reply to a text message. Returns what happened. */
   replyMessage: (id: string, option: number) => string;
   markInboxRead: () => void;
+  /** Run an election campaign. Returns what happened. */
+  campaign: (stops: string[], budget: CampaignBudget, message: CampaignMessage) => string[];
+  /** Decide a Cabinet scene: the backed secretary gains trust, the passed-over ones lose it. */
+  sideWith: (eventId: string, choiceId: string, winner: string | null, losers: string[]) => void;
   /** Send a bill drafted at the drafting table to Congress. */
   submitDraft: (eventId: string, picks: number[]) => EventReport | null;
   /** Apply the results of a press conference. */
@@ -343,6 +347,22 @@ export const useGameStore = create<GameState>()(
         undo = null;
         set({ ...d, lastSavedAt: now() });
         return report;
+      },
+      sideWith: (eventId, choiceId, winner, losers) => {
+        get().choose(eventId, choiceId);
+        const trust = { ...(get().trust ?? {}) };
+        const bump = (k: string, d: number) => (trust[k] = Math.max(0, Math.min(100, (trust[k] ?? 55) + d)));
+        if (winner) bump(winner, 4);
+        losers.forEach((k) => bump(k, winner ? -4 : -2));
+        set({ trust });
+      },
+      campaign: (stops, budget, message) => {
+        const d = draftOf(get());
+        const cost = CAMPAIGN_BUDGET[budget].cost;
+        const lines = runCampaign(d, stops, budget, message);
+        if (lines.length) applyLoose(d, { spend: cost, spendLabel: 'Election campaign' }, 'campaign');
+        set({ ...d, lastSavedAt: now() });
+        return lines;
       },
       markInboxRead: () => set((s) => ({ inbox: (s.inbox ?? []).map((m) => ({ ...m, read: true })) })),
       finishPress: (effects) => {

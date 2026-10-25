@@ -16,6 +16,7 @@ import { messagesTick, promisesTick } from './extras';
 import { achievementsTick } from './legacy';
 import { crisisClock, governorFactor, localElections, needsApproval, needsTick, shiftGovernor, shiftNeeds, shiftRelations } from './world';
 import { courtCompany } from './economyActions';
+import { pollResults } from './society';
 import { accuseSpy, afterDecision, betrayalTokens, electoralApproval, plantSpy, resolveBetrayal, societyTick, twistTokens } from './society';
 import { applyInstitutionEffects, centralBankTick, goccTick, institutionTokens, monetaryEffect, takenNames } from './institutions';
 
@@ -192,6 +193,13 @@ export function eventMonth(s: CampaignState, e: StoryEvent): number | undefined 
 }
 
 const MAX_MATTERS_PER_MONTH = 9;
+
+/** Difficulty is a headwind (or tailwind) for the whole term, not just the starting numbers. */
+const DIFF_PULL: Record<string, { growth: number; inflation: number; approval: number }> = {
+  easy: { growth: 0.4, inflation: -0.4, approval: 5 },
+  normal: { growth: 0, inflation: 0, approval: 0 },
+  hard: { growth: -0.6, inflation: 1.2, approval: -7 },
+};
 const MAX_BILLS_PER_MONTH = 2;
 const isBill = (e: StoryEvent) => e.id.startsWith('bill_') || e.id.startsWith('b2_');
 /** Crises, elections, budgets, and chapter beats are never postponed. */
@@ -496,7 +504,8 @@ function nextInflation(s: CampaignState, growth: number, borrowed: number): numb
     Math.min(2, deficitPct * 0.25) - // borrowing to spend
     (p.investor - 50) * 0.012 + // confident investors mean a stronger peso
     Math.max(0, p.sovereignty - 70) * 0.02 + // shipping disruptions in the West Sea
-    monetaryEffect(s).inflation; // central bank rates and the peso
+    monetaryEffect(s).inflation + // central bank rates and the peso
+    DIFF_PULL[String(s.flags.difficulty ?? 'normal')].inflation; // the Republic you inherited
   // Supply shocks: a persistent random component, plus the odd oil or rice spike.
   const r = seededRandom(seedOf(s, `inflation-shock:${s.month}`));
   let shock = Number(s.flags.inflation_shock ?? 0) * 0.82 + (r() - 0.5) * 0.5;
@@ -533,7 +542,7 @@ export function applyEffects(s: CampaignState, fx: Effects, report: EventReport,
     else if (k === 'approval') {
       // Diminishing returns: the more popular you are, the harder it is to gain; the less popular, the harder you fall.
       const a: number = s.economy.approval;
-      const scaled = v > 0 ? v * 0.7 * Math.min(1, (100 - a) / 55) : v * 0.7 * Math.min(1.3, (110 - a) / 60);
+      const scaled = v > 0 ? v * 0.45 * clamp((90 - a) / 45, 0.1, 1) : v * 0.6 * Math.min(1.3, (110 - a) / 60);
       s.economy = { ...s.economy, approval: clamp(a + scaled, 0, 100) };
     }
     else if (k === 'growth') s.economy = { ...s.economy, growth: clamp((s.economy.growth ?? 5.6) + v, -8, 12) };
@@ -887,7 +896,7 @@ export function monthTick(s: CampaignState): MonthReport {
   // Economy drifts
   const ec = s.economy!;
   const p = s.politics;
-  const growthTarget = 5.2 + monetaryEffect(s).growth + (p.investor - 50) * 0.04 - Math.max(0, ec.inflation - 4) * 0.3 - Math.max(0, p.sovereignty - 70) * 0.03;
+  const growthTarget = 4.9 + DIFF_PULL[String(s.flags.difficulty ?? 'normal')].growth + monetaryEffect(s).growth + (p.investor - 50) * 0.04 - Math.max(0, ec.inflation - 4) * 0.3 - Math.max(0, p.sovereignty - 70) * 0.03;
   const growth = (ec.growth ?? 5.6) + (growthTarget - (ec.growth ?? 5.6)) * 0.15;
   // Re-borrowing an installment (a rollover) is not new deficit spending; only the rest counts.
   const deficitBorrow = Math.max(0, borrowed - principal);
@@ -897,8 +906,11 @@ export function monthTick(s: CampaignState): MonthReport {
   // Approval is pulled toward a "fundamentals" baseline, so single events matter but do not run away.
   const honeymoon = s.month < 12 ? -0.4 : -0.1;
   const baseline =
-    50 + needsApproval(s) - (inflation - 4) * 2.5 - (p.crime - 50) * 0.2 - (p.corruption - 50) * 0.2 - (p.protest - 30) * 0.15 - (p.media - 40) * 0.1 + (growth - 5) * 2 - (unemployment - 6) * 1.5;
-  const approval = clamp(ec.approval + (baseline - ec.approval) * 0.12 + honeymoon, 3, 90);
+    46 + DIFF_PULL[String(s.flags.difficulty ?? 'normal')].approval + needsApproval(s) - (inflation - 4) * 2.8 - (p.crime - 50) * 0.2 - (p.corruption - 50) * 0.2 - (p.protest - 30) * 0.15 - (p.media - 40) * 0.1 + (growth - 5) * 1.5 - (unemployment - 6) * 1.6;
+  // Very high approval is hard to sustain: the pull above 60 is softened, and six years in office wear any President down.
+  const soft = baseline > 60 ? 60 + (baseline - 60) * 0.45 : baseline;
+  const fatigue = Math.max(0, s.month) * 0.1;
+  const approval = clamp(ec.approval + (soft - fatigue - ec.approval) * 0.16 + honeymoon, 3, 85);
   // Borrowing costs rise with the debt ratio and with investor nervousness.
   const ratio = (ec.debt / ec.gdp) * 100;
   // Borrowing costs follow the central bank's policy rate, the debt ratio, and investor nerves.
@@ -932,7 +944,7 @@ export function monthTick(s: CampaignState): MonthReport {
   scheduleCrises(s);
   scheduleVacancies(s);
   const ec2 = s.economy!;
-  s.history = [...(s.history ?? []), { month: s.month, approval: ec2.approval, inflation: ec2.inflation, growth: ec2.growth ?? 5, debtRatio: (ec2.debt / ec2.gdp) * 100, unemployment: ec2.unemployment }].slice(-80);
+  s.history = [...(s.history ?? []), { month: s.month, approval: ec2.approval, inflation: ec2.inflation, growth: ec2.growth ?? 5, debtRatio: (ec2.debt / ec2.gdp) * 100, unemployment: ec2.unemployment, peso: s.centralBank?.peso, ...Object.fromEntries(pollResults(s).filter((p) => p.kind === 'region').map((p) => [p.id, Math.round(p.value)])) }].slice(-80);
   if (assetIncome > 0) notes.push(`State investments and companies earned ${peso(assetIncome)} this month.`);
   return { month: s.month, revenue: revenue + assetIncome, spending, borrowed, notes };
 }

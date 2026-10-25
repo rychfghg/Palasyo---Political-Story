@@ -9,6 +9,8 @@ import { BudgetModal } from '@/features/budget/components/BudgetModal';
 import { COUNTRY } from '@/shared/constants/world';
 import { OfficesMenu } from './OfficesMenu';
 import { CrisisTint } from '@/features/extras/components/LiveWorld';
+import { Tutorial } from '@/features/extras/components/Tutorial';
+import { CampaignPlanner } from '@/features/extras/components/Campaign';
 import { PressConference, Sona } from '@/features/extras/components/PressAndSona';
 
 /** The main tabs are the branches of government; the executive offices sit behind one button. */
@@ -58,11 +60,13 @@ export function OfficePage() {
       <div className="office__body">
         <Outlet />
       </div>
+      <Tutorial />
       <CabinetWizard />
       <BudgetModal />
       <CrisisTint />
       <Sona />
       <PressConference />
+      <CampaignPlanner />
     </section>
   );
 }

@@ -182,3 +182,66 @@ export function crisisClock(s: CampaignState, notes: string[]) {
   if (bad && months === 3) notes.push('Third straight month of runaway prices or debt. Unions and students are planning rallies.');
   if (bad && months === 9) notes.push('Nine months of economic crisis. Crowds chant for your resignation outside the Palasyo every night.');
 }
+
+// ───────────────────────── Election campaigns ─────────────────────────
+
+export type CampaignBudget = 'modest' | 'big' | 'massive';
+export type CampaignMessage = 'economy' | 'unity' | 'attack' | 'change';
+
+export const CAMPAIGN_BUDGET: Record<CampaignBudget, { label: string; cost: number; lift: number }> = {
+  modest: { label: 'Modest — ₱3B', cost: 3, lift: 1 },
+  big: { label: 'Big — ₱8B', cost: 8, lift: 2 },
+  massive: { label: 'Massive — ₱15B', cost: 15, lift: 3 },
+};
+
+export const CAMPAIGN_MESSAGE: Record<CampaignMessage, { label: string; text: string }> = {
+  economy: { label: 'The economy', text: 'Jobs and prices. Works if the numbers are good; backfires if inflation is high.' },
+  unity: { label: 'Unity', text: 'Above the fray. A small lift everywhere and a gentler press.' },
+  attack: { label: 'Attack the opposition', text: 'Fires up your base and the working poor; the middle class winces.' },
+  change: { label: 'Continuity and change', text: 'Promise to finish what you started. Helps your successor most.' },
+};
+
+/** Which election is coming, if a campaign can be planned now. */
+export function campaignDue(s: CampaignState): 'midterm' | 'final' | null {
+  if ((s.month === 32 || s.month === 33) && !s.flags.campaign_2030) return 'midterm';
+  if ((s.month === 68 || s.month === 69) && !s.flags.campaign_2033) return 'final';
+  return null;
+}
+
+/** Expected poll lift per region (and class) from a plan, before committing. */
+export function campaignPreview(s: CampaignState, stops: string[], budget: CampaignBudget, message: CampaignMessage) {
+  const lift: Record<string, number> = { luzara: 0, visara: 0, mindara: 0, classAB: 0, classC: 0, classD: 0, classE: 0 };
+  for (const id of stops) {
+    const region = PROVINCE_REGION[id] ?? 'luzara';
+    const g = governors(s).find((x) => x.province === id);
+    lift[region] += g?.stance === 'ally' ? 4 : g?.stance === 'opposition' ? 1.5 : 3;
+  }
+  const b = CAMPAIGN_BUDGET[budget].lift;
+  for (const k of ['luzara', 'visara', 'mindara']) lift[k] += b;
+  const inflation = s.economy?.inflation ?? 4;
+  if (message === 'economy') { const v = inflation < 4.5 ? 2.5 : -2; lift.classD += v; lift.classE += v; lift.classC += v / 2; }
+  if (message === 'unity') for (const k of Object.keys(lift)) lift[k] += 0.8;
+  if (message === 'attack') { lift.classD += 3; lift.classE += 2; lift.classC -= 1.5; lift.classAB -= 1; }
+  if (message === 'change') { lift.classC += 1.5; lift.classD += 1; }
+  return lift;
+}
+
+export function runCampaign(s: CampaignState, stops: string[], budget: CampaignBudget, message: CampaignMessage): string[] {
+  const kind = campaignDue(s);
+  if (!kind) return [];
+  const lift = campaignPreview(s, stops, budget, message);
+  const off = { ...(s.polls ?? {}) };
+  for (const [k, v] of Object.entries(lift)) off[k] = clamp((off[k] ?? 0) + v, -25, 25);
+  s.polls = off;
+  const year = kind === 'midterm' ? 2030 : 2033;
+  const total = Object.values(lift).reduce((n, v) => n + v, 0);
+  s.flags = { ...s.flags, [`campaign_${year}`]: true, ...(kind === 'final' && (total >= 14 || message === 'change') ? { successor_boost: true } : {}) };
+  if (message === 'unity' && s.politics) s.politics = { ...s.politics, media: clamp(s.politics.media - 3, 0, 100) };
+  if (message === 'attack' && s.politics) s.politics = { ...s.politics, cohesion: clamp(s.politics.cohesion + 3, 0, 100), media: clamp(s.politics.media + 3, 0, 100) };
+  const names = stops.map((id) => PROVINCES.find((p) => p.id === id)?.name ?? id);
+  return [
+    `You campaigned in ${names.length ? names.join(', ') : 'Maynilad only'} with a ${budget} budget, running on ${CAMPAIGN_MESSAGE[message].label.toLowerCase()}.`,
+    `Regional polls move: Luzara ${lift.luzara >= 0 ? '+' : ''}${lift.luzara.toFixed(1)}, Visara ${lift.visara >= 0 ? '+' : ''}${lift.visara.toFixed(1)}, Mindara ${lift.mindara >= 0 ? '+' : ''}${lift.mindara.toFixed(1)}.`,
+    kind === 'final' && s.flags.successor_boost ? 'Your campaign gives your successor real momentum.' : '',
+  ].filter(Boolean);
+}

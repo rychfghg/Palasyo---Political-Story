@@ -69,6 +69,10 @@ export interface HistoryPoint {
   growth: number;
   debtRatio: number;
   unemployment: number;
+  peso?: number;
+  luzara?: number;
+  visara?: number;
+  mindara?: number;
 }
 
 export interface Law {
