@@ -1,0 +1,680 @@
+import type { StoryEvent } from '@/features/narrative/types/event';
+
+/** Year 3: July 2029 – June 2030 (months 24–35). Ends with the midterm elections and the end of Chapter 1. */
+export const YEAR_3: StoryEvent[] = [
+  // ═════════════════════════ JULY 2029 ═════════════════════════
+  {
+    id: 'sona_2029',
+    month: 24,
+    priority: 5,
+    category: 'address',
+    title: 'The Third SONA — Halfway',
+    location: 'Session Hall, Batasang Pambansa',
+    body: [
+      'Halfway through your term. Your approval: {approval}. The midterm elections are ten months away, and every legislator in the hall is calculating whether standing next to you helps or hurts.',
+    ],
+    choices: [
+      {
+        id: 'sona3_unity',
+        label: 'Call for national unity',
+        description: 'Extend a hand to the opposition.',
+        outcome: 'A few opposition senators applaud — politely. The rest wait to see if you mean it.',
+        headline: 'PRESIDENT EXTENDS OLIVE BRANCH',
+        effects: { stats: { media: -5, cohesion: 3 }, senateShift: { from: 'opposition', to: 'neutral', count: 1 } },
+      },
+      {
+        id: 'sona3_midterm',
+        label: 'Make it a campaign speech',
+        description: 'Ask the people for a Congress that will work with you.',
+        outcome: 'It energizes your base and alarms the Commission on Elections, which reminds everyone the campaign period has not started.',
+        headline: 'SONA OR CAMPAIGN RALLY?',
+        effects: { stats: { approval: 2, cohesion: 5, media: 5 } },
+      },
+      {
+        id: 'sona3_reform',
+        label: 'Announce a second wave of reforms',
+        description: 'Anti-dynasty, freedom of information, and civil-service reform.',
+        outcome: 'Reformers cheer. Every dynasty in the hall — roughly two-thirds of it — goes silent.',
+        headline: 'PRESIDENT PUSHES ANTI-DYNASTY LAW',
+        effects: { stats: { approval: 3, cohesion: -6, church: 3 }, schedule: [{ event: 'anti_dynasty_bill', inMonths: 2 }] },
+      },
+    ],
+  },
+  {
+    id: 'court_sovereign_fund',
+    category: 'court',
+    title: 'Supreme Court: Pondo ng Bayan',
+    location: 'Kataas-taasang Hukuman',
+    body: ['Pensioners’ groups and opposition legislators challenge the Pondo ng Bayan Act, arguing it unconstitutionally diverts funds held in trust for pensioners.'],
+    court: {
+      title: 'Pensioners’ Alliance v. Pondo ng Bayan Corporation',
+      kind: 'economic',
+      soundness: 0.5,
+      onStrike: { stats: { investor: -5, growth: -0.2 }, flags: { sovereign_fund_struck: true } },
+      onUphold: { stats: { investor: 3 } },
+    },
+    choices: [
+      {
+        id: 'fund_comply',
+        label: 'Return the pension money',
+        when: [{ ruling: 'struck' }],
+        description: 'Comply and shrink the fund.',
+        outcome: 'The fund shrinks to a third of its size. Pensioners celebrate outside the Court.',
+        headline: 'SC: PENSION MONEY MUST BE RETURNED',
+        effects: { stats: { approval: 2, courtTension: -3 } },
+      },
+      {
+        id: 'fund_upheld',
+        label: 'Proceed — the fund is constitutional',
+        when: [{ ruling: 'upheld' }],
+        description: 'Invest.',
+        outcome: 'The fund makes its first investments: a toll road and a power plant. Both owned in part by donors to your party.',
+        headline: 'SC UPHOLDS PONDO NG BAYAN',
+        effects: { stats: { growth: 0.2, corruption: 3 } },
+      },
+    ],
+  },
+  {
+    id: 'court_drug_war',
+    category: 'court',
+    title: 'Supreme Court: Oplan Walis',
+    location: 'Kataas-taasang Hukuman',
+    when: [{ any: [{ flag: 'drug_war', is: 'hard' }, { flag: 'drug_war', is: 'ended' }] }],
+    body: ['Families of those killed in Oplan Walis petition the Supreme Court for a writ of amparo and demand the police release all operational records.'],
+    court: {
+      title: 'In re: Families of Oplan Walis Victims (writ of amparo)',
+      kind: 'rights',
+      soundness: 0.35,
+      onStrike: { stats: { military: -5, church: 5, courtTension: 5 }, flags: { drug_war_records_ordered: true } },
+      onUphold: { stats: { military: 3 } },
+    },
+    choices: [
+      {
+        id: 'release_records',
+        label: 'Release the police records',
+        when: [{ ruling: 'struck' }],
+        description: 'Comply fully.',
+        outcome: 'The records show that 40% of those killed had no prior record. The police chief is charged.',
+        headline: 'OPLAN WALIS RECORDS: 40% OF DEAD HAD NO RECORD',
+        effects: { stats: { approval: -3, church: 5, military: -5 } },
+      },
+      {
+        id: 'slow_walk',
+        label: 'Slow-walk compliance',
+        when: [{ ruling: 'struck' }],
+        description: 'Release some records, slowly.',
+        outcome: 'The Court issues a warning of contempt. The Chief Justice’s statement is unusually sharp.',
+        headline: 'SC WARNS PALASYO OF CONTEMPT',
+        effects: { stats: { courtTension: 12, media: 6 } },
+      },
+      {
+        id: 'records_upheld',
+        label: 'Note the ruling in the police’s favor',
+        when: [{ ruling: 'upheld' }],
+        description: 'The records stay sealed.',
+        outcome: 'The families weep outside the Court. The police breathe easier.',
+        headline: 'SC DENIES AMPARO PLEA',
+        effects: { stats: { church: -4 } },
+      },
+    ],
+  },
+  {
+    id: 'court_death_penalty',
+    category: 'court',
+    title: 'Supreme Court: The Death Penalty',
+    location: 'Kataas-taasang Hukuman',
+    body: ['The Supreme Court rules on the constitutionality of the Death Penalty Restoration Act, which critics argue violates international treaty obligations and the Constitution’s ban on cruel punishment.'],
+    court: {
+      title: 'Free Legal Assistance Group v. Congress (death penalty)',
+      kind: 'rights',
+      soundness: 0.45,
+      onStrike: { stats: { church: 6 }, flags: { death_penalty_struck: true } },
+      onUphold: { stats: { crime: -2, church: -4 } },
+    },
+    choices: [
+      {
+        id: 'dp_accept_strike',
+        label: 'Accept the Court’s decision',
+        when: [{ ruling: 'struck' }],
+        description: 'The law is void.',
+        outcome: 'Death row is emptied. The Church celebrates; talk radio rages.',
+        headline: 'SC STRIKES DOWN DEATH PENALTY',
+        effects: { stats: { courtTension: -3 } },
+      },
+      {
+        id: 'dp_upheld',
+        label: 'Proceed with the law',
+        when: [{ ruling: 'upheld' }],
+        description: 'Carry out the sentences.',
+        outcome: 'The first execution is scheduled for December. The Pope sends a personal letter.',
+        headline: 'SC UPHOLDS DEATH PENALTY',
+        effects: { stats: { church: -6 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ AUGUST 2029 ═════════════════════════
+  {
+    id: 'ofw_crisis',
+    month: 25,
+    priority: 6,
+    category: 'diplomacy',
+    title: 'Trapped in the Gulf',
+    location: 'Department of Foreign Affairs crisis room',
+    body: [
+      'Civil war breaks out in a Gulf state where 120,000 Kapuluan workers live. Missiles are hitting the capital. A domestic worker, Joy Dela Rosa, is on death row there for killing an employer who she says was trying to rape her.',
+      'The families at the airport are waiting for you to act.',
+    ],
+    choices: [
+      {
+        id: 'mass_evacuation',
+        label: 'Launch the largest evacuation in history (₱14B)',
+        description: 'Charter every plane, send navy ships.',
+        outcome: 'Operation Uwian brings home 94,000 workers in five weeks. Each one needs a job now.',
+        headline: 'OPERATION UWIAN: 94,000 OFWS HOME',
+        effects: { spend: 14, spendLabel: 'OFW evacuation', stats: { approval: 7, unemployment: 0.3, military: 4 } },
+      },
+      {
+        id: 'save_joy',
+        label: 'Personally plead for Joy Dela Rosa’s life',
+        description: 'Fly to the region yourself.',
+        outcome: 'You meet the Emir in a bunker. Joy is pardoned and flies home with you. The country weeps with her mother at the airport.',
+        headline: 'JOY IS COMING HOME',
+        effects: { spend: 2, spendLabel: 'Presidential mission', stats: { approval: 6, family: -3, church: 4 } },
+      },
+      {
+        id: 'wait_ofw',
+        label: 'Advise workers to shelter in place',
+        description: 'Evacuations are expensive and dangerous.',
+        outcome: 'Eleven OFWs are killed when a missile hits their dormitory. Their families hold a vigil outside the Palasyo.',
+        headline: '11 OFWS KILLED; FAMILIES BLAME PALASYO',
+        effects: { stats: { approval: -9, protest: 10, media: 8 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ SEPTEMBER 2029 ═════════════════════════
+  {
+    id: 'anti_dynasty_bill',
+    category: 'congress',
+    title: 'The Anti-Political Dynasty Bill',
+    location: 'Congress',
+    body: [
+      'The Constitution has ordered Congress to ban political dynasties since 1987. Congress — full of dynasties — has never done it.',
+      'You have certified the bill as urgent. Two-thirds of the House has a relative in office.',
+    ],
+    choices: [
+      {
+        id: 'all_in_dynasty',
+        label: 'Go all in',
+        description: 'Spend everything. Make it the fight of your presidency.',
+        outcome: 'You campaign for the bill in every province. The dynasties campaign against you in every province.',
+        effects: {
+          stats: { capital: -15 },
+          vote: {
+            bill: 'Anti-Political Dynasty Act',
+            appeal: -3,
+            senateAppeal: 0,
+            onPass: { law: { id: 'anti_dynasty', name: 'Anti-Political Dynasty Act', summary: 'Bans relatives from succeeding each other in office.' }, stats: { approval: 8, corruption: -6, cohesion: -10 }, houseShift: -15 },
+            onFail: { stats: { approval: 2, cohesion: -5 }, houseShift: -6 },
+          },
+        },
+      },
+      {
+        id: 'withdraw_dynasty',
+        label: 'Withdraw it before the vote',
+        description: 'Not before the midterms.',
+        outcome: 'The reformers feel betrayed. The dynasties feel relieved — and grateful.',
+        headline: 'ANTI-DYNASTY BILL WITHDRAWN',
+        effects: { stats: { cohesion: 6, approval: -3, media: 5 } },
+      },
+    ],
+  },
+  {
+    id: 'corruption_arrest',
+    month: 26,
+    priority: 7,
+    category: 'scandal',
+    title: 'The Speaker’s Flood Control',
+    location: 'Sandiganbayan (anti-graft court)',
+    when: [{ any: [{ flag: 'pork_deal' }, { flag: 'insertions_accepted' }, { flag: 'speaker_owns_you' }] }],
+    body: [
+      'The Ombudsman files plunder charges against Speaker {speaker}: ₱7.8 billion in kickbacks from flood-control projects — many of them from the list you were handed in your first week.',
+      'The Speaker calls you at 2 a.m. “If I go down, {mrmadam} President, I’m not going down alone.”',
+    ],
+    choices: [
+      {
+        id: 'abandon_speaker',
+        label: 'Let the law take its course',
+        description: 'Abandon the Speaker.',
+        outcome: 'The Speaker is arrested. The Speaker’s faction — sixty congressmen — breaks with you. The ex-Speaker starts talking to prosecutors about the “list.”',
+        headline: 'SPEAKER ARRESTED FOR PLUNDER',
+        effects: { stats: { approval: 6, corruption: -6, cohesion: -12, ombudsman: 5 }, houseShift: -20, flags: { speaker_arrested: true } },
+      },
+      {
+        id: 'protect_speaker',
+        label: 'Protect the Speaker — quietly',
+        description: 'Lean on the Justice Department. Delay everything.',
+        outcome: 'The case stalls. The Speaker is grateful. The Ombudsman adds your Justice Secretary to her list of people to watch.',
+        headline: 'SPEAKER’S CASE STALLS; PALASYO DENIES MEDDLING',
+        effects: { stats: { approval: -6, corruption: 8, ombudsman: 15, cohesion: 6 }, flags: { obstruction: true, impeachable_offense: true } },
+      },
+      {
+        id: 'new_speaker',
+        label: 'Engineer a new Speaker first — then let the old one fall',
+        description: 'Install a loyalist before the old Speaker can retaliate.',
+        outcome: 'In a midnight session, 170 congressmen elect a new Speaker loyal to you. By morning, the old Speaker has no power left to hurt you.',
+        headline: 'MIDNIGHT COUP: NEW SPEAKER ELECTED',
+        effects: { stats: { capital: -10, cohesion: 4, corruption: -2 }, houseShift: -8, flags: { new_speaker: true } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ OCTOBER 2029 ═════════════════════════
+  {
+    id: 'midterm_slate',
+    month: 27,
+    priority: 8,
+    category: 'election',
+    title: 'The Senate Slate',
+    location: '{party} headquarters',
+    body: [
+      'Filing of candidacies for the May 2030 midterms. Twelve Senate seats are up. Your coalition needs a slate of twelve — and it will be read as a referendum on you.',
+    ],
+    choices: [
+      {
+        id: 'slate_celebrities',
+        label: 'Celebrities and broadcasters',
+        description: 'An action star, a boxer, a TV host, and a vlogger with 12 million followers.',
+        outcome: 'The slate polls extremely well. Serious people are horrified.',
+        headline: 'ADMIN SLATE: ACTION STAR, BOXER, VLOGGER',
+        effects: { flags: { midterm_slate: 'celebrities' }, stats: { media: 4 } },
+      },
+      {
+        id: 'slate_reformers',
+        label: 'Reformers and technocrats',
+        description: 'A former Ombudsman, an economist, a doctor, a teacher.',
+        outcome: 'The editorials love it. The voters do not know who they are.',
+        headline: 'ADMIN SLATE HEAVY ON REFORMERS',
+        effects: { flags: { midterm_slate: 'reformers' }, stats: { media: -4, church: 3 } },
+      },
+      {
+        id: 'slate_dynasties',
+        label: 'The dynasties and the machine',
+        description: 'Sons, daughters, and spouses of governors.',
+        outcome: 'Guaranteed machinery in the provinces. Guaranteed contempt in the cities.',
+        headline: 'ADMIN SLATE: “ALL IN THE FAMILY”',
+        effects: { flags: { midterm_slate: 'dynasties' }, stats: { cohesion: 8, corruption: 3 } },
+      },
+    ],
+  },
+  {
+    id: 'church_letter',
+    month: 27,
+    priority: 4,
+    category: 'society',
+    title: 'The Pastoral Letter',
+    location: 'Every parish in the country',
+    when: [{ stat: 'church', lte: 40 }],
+    body: ['The Catholic Bishops’ Conference issues a pastoral letter to be read at every Mass: it urges the faithful to “vote for candidates who respect life, truth, and the poor” — widely read as “vote against the President’s slate.”'],
+    choices: [
+      {
+        id: 'meet_cardinal',
+        label: 'Meet the Cardinal privately',
+        description: 'Seek common ground.',
+        outcome: 'The meeting is cordial. The Cardinal asks for three things. You can give one.',
+        effects: { stats: { church: 8 } },
+      },
+      {
+        id: 'attack_church',
+        label: 'Criticize the bishops publicly',
+        description: '“Separation of Church and State.”',
+        outcome: 'Your base cheers. Your grandmother calls you in tears.',
+        headline: 'PRESIDENT VS. BISHOPS',
+        effects: { stats: { church: -10, family: -5, approval: -2 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ NOVEMBER 2029 ═════════════════════════
+  {
+    id: 'house_coup',
+    month: 28,
+    priority: 7,
+    category: 'congress',
+    title: 'Coup in the House',
+    location: 'House of Representatives, 11 p.m.',
+    when: [{ stat: 'cohesion', lte: 58 }],
+    body: [
+      'A late-night text from a friendly congressman: “Rebels have 150 signatures to oust the Speaker and install an opposition-friendly one. Vote is at midnight.”',
+      'Traitors inside your coalition have been counting heads for weeks.',
+    ],
+    choices: [
+      {
+        id: 'counter_coup',
+        label: 'Counter it: call every ally, promise everything',
+        description: 'Save the leadership.',
+        outcome: 'You are on the phone until 4 a.m.',
+        effects: {
+          stats: { capital: -8 },
+          spend: 10,
+          spendLabel: '“Development funds” for wavering congressmen',
+          vote: {
+            bill: 'Motion to retain the House leadership',
+            appeal: 1,
+            houseOnly: true,
+            onPass: { stats: { cohesion: 6 }, houseShift: 4 },
+            onFail: { stats: { cohesion: -10, capital: -5 }, houseShift: -25, flags: { house_lost: true } },
+          },
+        },
+      },
+      {
+        id: 'let_it_happen',
+        label: 'Let it happen',
+        description: 'Maybe the new leadership is someone you can deal with.',
+        outcome: 'The coup succeeds. The new Speaker is independent — and owes you nothing.',
+        headline: 'HOUSE COUP OUSTS SPEAKER',
+        effects: { stats: { cohesion: -8 }, houseShift: -18, flags: { house_lost: true } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ DECEMBER 2029 ═════════════════════════
+  {
+    id: 'budget_2030',
+    month: 29,
+    priority: 9,
+    category: 'congress',
+    title: 'The Election-Year Budget',
+    location: 'Congress',
+    body: ['The FY2030 budget will be spent during campaign season. Everyone knows what that means.'],
+    choices: [
+      {
+        id: 'b30_discipline',
+        label: 'A disciplined budget: +5%',
+        description: 'Show you meant the deficit promise.',
+        outcome: 'Your allies grumble about having nothing to show voters.',
+        effects: {
+          vote: {
+            bill: 'General Appropriations Act of 2030',
+            appeal: 0,
+            onPass: { enactBudget: { fy: 2030, mode: 'growth', growth: 0.05 }, stats: { investor: 6, cohesion: -4 }, law: { id: 'gaa2030', name: 'General Appropriations Act of 2030', summary: 'A disciplined election-year budget.' } },
+            onFail: { enactBudget: { fy: 2030, mode: 'reenacted' } },
+          },
+        },
+      },
+      {
+        id: 'b30_giveaway',
+        label: 'A giveaway budget: +14%, cash aid everywhere',
+        description: 'Win the midterms.',
+        outcome: 'Cash aid programs, “ayuda,” and ribbon-cuttings in every district.',
+        effects: {
+          vote: {
+            bill: 'General Appropriations Act of 2030 (expanded)',
+            appeal: 3,
+            onPass: { enactBudget: { fy: 2030, mode: 'growth', growth: 0.14 }, stats: { approval: 4, cohesion: 6, investor: -8 }, law: { id: 'gaa2030', name: 'General Appropriations Act of 2030', summary: 'An expanded pre-election budget.' } },
+            onFail: { enactBudget: { fy: 2030, mode: 'reenacted' } },
+          },
+        },
+      },
+    ],
+  },
+
+  // ═════════════════════════ JANUARY 2030 ═════════════════════════
+  {
+    id: 'ayuda_request',
+    month: 30,
+    priority: 6,
+    category: 'election',
+    title: 'Ayuda',
+    location: 'Party caucus',
+    body: [
+      'Your party’s candidates want ₱30 billion in social-welfare “ayuda” distributed through their offices before the election spending ban begins. Envelopes with their faces on them.',
+      'The Commission on Elections is watching. So is the Ombudsman.',
+    ],
+    choices: [
+      {
+        id: 'release_ayuda',
+        label: 'Release it through the candidates',
+        description: 'This is how elections are won.',
+        outcome: 'The envelopes go out. So do the photos of the envelopes.',
+        headline: 'AYUDA WITH CANDIDATES’ FACES: COMELEC PROBES',
+        effects: { spend: 30, spendLabel: 'Pre-election cash aid', stats: { approval: 3, corruption: 6, ombudsman: 8, cohesion: 8 }, flags: { ayuda_abuse: true } },
+      },
+      {
+        id: 'ayuda_direct',
+        label: 'Release it directly through the Social Welfare department',
+        description: 'Help the poor, not the candidates.',
+        outcome: 'Aid reaches families without candidates’ faces. Your candidates are furious.',
+        headline: 'AYUDA RELEASED — WITHOUT POLITICIANS',
+        effects: { spend: 30, spendLabel: 'Cash aid (direct)', stats: { approval: 2, cohesion: -5, poverty: -0.3 } },
+      },
+      {
+        id: 'no_ayuda',
+        label: 'Refuse',
+        description: 'No vote buying with public money.',
+        outcome: 'Your party accuses you of wanting to lose.',
+        effects: { stats: { cohesion: -8, corruption: -2 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ FEBRUARY 2030 ═════════════════════════
+  {
+    id: 'haizhou_landing',
+    month: 31,
+    priority: 10,
+    category: 'diplomacy',
+    title: 'The Landing',
+    location: 'National Security Council, 3 a.m.',
+    body: [
+      'Haizhou marines have landed on Pag-asa Island — an inhabited Kapuluan island with a school, a town hall, and 300 civilians. They say they are “protecting Haizhou fishermen.”',
+      'The Columbian Union asks if you will invoke the Mutual Defense Treaty. Haizhou warns that doing so “would be a grave mistake.”',
+      'This is the moment your presidency will be remembered for.',
+    ],
+    variants: [
+      { when: [{ flag: 'reef_lost' }], text: 'After Kalayaan Reef, Haizhou believes you will back down again.' },
+      { when: [{ flag: 'haizhou_collateral' }], text: 'Your Finance Secretary reminds you: the megaproject loan lets Haizhou seize “patrimonial assets” if you default — and a war would mean default.' },
+    ],
+    choices: [
+      {
+        id: 'invoke_treaty',
+        label: 'Invoke the Mutual Defense Treaty',
+        description: 'Call in the Columbian Union.',
+        outcome: 'Columbian carriers steam toward Pag-asa. For nine days, the region stands at the edge of war. Then Haizhou withdraws its marines, claiming its “mission is complete.” The peso crashes, then recovers.',
+        headline: 'HAIZHOU WITHDRAWS FROM PAG-ASA AFTER TREATY INVOKED',
+        reactions: [
+          { who: 'Columbian President', text: 'Our commitment is ironclad.', mood: 'pos' },
+          { who: 'Kilusang Makabayan', text: 'We have become a battlefield for superpowers.', mood: 'neg' },
+        ],
+        effects: { spend: 15, spendLabel: 'Military mobilization', stats: { sovereignty: 10, military: 15, approval: 10, investor: -6, growth: -0.4 }, flags: { pag_asa: 'defended' } },
+      },
+      {
+        id: 'defend_alone',
+        label: 'Defend the island ourselves',
+        description: 'Send the Marines. No foreign help.',
+        outcome: 'Kapuluan marines land at dawn. Three are killed in a firefight. Haizhou, facing a real war and world condemnation, withdraws. You are a national hero — and three mothers are burying sons.',
+        headline: 'PAG-ASA RETAKEN; 3 MARINES KILLED',
+        effects: { spend: 20, spendLabel: 'Pag-asa operation', stats: { sovereignty: 15, military: 20, approval: 14, investor: -8, family: -5 }, flags: { pag_asa: 'retaken' } },
+      },
+      {
+        id: 'negotiate_island',
+        label: 'Negotiate',
+        description: 'Avoid bloodshed at any cost.',
+        outcome: 'After six weeks of talks, Haizhou withdraws — in exchange for “joint administration” of the waters around Pag-asa. The military is humiliated. The civilians are alive.',
+        headline: 'PAG-ASA DEAL: “JOINT ADMINISTRATION” WITH HAIZHOU',
+        effects: { stats: { sovereignty: -15, military: -15, approval: -10, investor: 4 }, flags: { pag_asa: 'shared', impeachable_offense: true }, senateShift: { from: 'ally', to: 'opposition', count: 2 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ MARCH 2030 ═════════════════════════
+  {
+    id: 'betrayal_plot',
+    month: 32,
+    priority: 9,
+    category: 'cabinet',
+    title: 'The Plot',
+    location: 'A hotel suite in Maynilad',
+    body: [
+      'Intelligence photographs, taken last night: {rival}, {traitor} — your {traitorPost} — the Minority Leader, and two generals, in the same hotel suite until 3 a.m.',
+      'The intelligence chief’s assessment: they are preparing for “a transition of leadership” after the midterms — through impeachment if possible, through “people power” if not.',
+    ],
+    variants: [
+      { when: [{ flag: 'vp_discovery', is: 'shared' }], text: 'Vice President {vp} warned you this was coming. The VP is on the phone within minutes: “Now we have them.”' },
+      { when: [{ flag: 'traitor_fired' }], text: 'Your fired former secretary is in the photos too — now openly working for the opposition.' },
+    ],
+    choices: [
+      {
+        id: 'purge',
+        label: 'Purge the plotters',
+        description: 'Fire the secretary, relieve the generals, expose {rival}.',
+        outcome: 'You fire {traitor} and relieve both generals of command on live television, holding up the photographs. {rival} calls it “a witch hunt.” The military is rattled.',
+        headline: 'PRESIDENT PURGES “PLOTTERS”; RIVAL CRIES WITCH HUNT',
+        effects: { fireCabinet: 'traitor', stats: { military: -8, approval: 3, media: 8, cabinetCohesion: 5 }, flags: { plot_exposed: true, rival_open_war: true } },
+      },
+      {
+        id: 'confront_vp',
+        label: 'Confront {rival} privately',
+        description: 'Show them the photographs. Offer a deal.',
+        outcome: '{rival} turns pale, then angry, then quiet. “What do you want?” The deal: {rival} stays out of the plot, and you do not release the photographs. For now.',
+        headline: undefined,
+        effects: { stats: { capital: 8 }, flags: { rival_blackmailed: true } },
+      },
+      {
+        id: 'secure_military',
+        label: 'Secure the military first',
+        description: 'Visit every major camp. Raise soldiers’ pay.',
+        outcome: 'You visit eleven camps in eleven days. The soldiers get a 10% raise. The generals in the photograph find themselves without troops willing to follow them.',
+        headline: 'PRESIDENT TOURS CAMPS, RAISES SOLDIERS’ PAY',
+        effects: { program: { id: 'soldier_raise', label: 'Military pay raise', monthly: 2.5, months: 120 }, stats: { military: 15 }, flags: { military_secured: true } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ APRIL 2030 ═════════════════════════
+  {
+    id: 'campaign_violence',
+    month: 33,
+    priority: 7,
+    category: 'election',
+    title: 'Blood in the Campaign',
+    location: 'Hilagang Luzara',
+    body: [
+      'Three weeks before election day, gunmen on motorcycles kill a congressional candidate from your coalition and four of his supporters. Two days later, an opposition candidate is killed in retaliation.',
+      'The COMELEC asks you to place four provinces under its control. Some of your allies want martial law in the north.',
+    ],
+    variants: [{ when: [{ flag: 'brother_running' }], text: 'Your brother Carlito is campaigning in the same region — against your ally. His convoy was shot at yesterday.' }],
+    choices: [
+      {
+        id: 'comelec_control',
+        label: 'Put the provinces under COMELEC control',
+        description: 'Troops at every polling place, but civilian rule.',
+        outcome: 'Soldiers guard 4,000 polling places. The killings stop.',
+        headline: 'FOUR PROVINCES UNDER COMELEC CONTROL',
+        effects: { spend: 3, spendLabel: 'Election security', stats: { crime: -3, approval: 2 } },
+      },
+      {
+        id: 'martial_law',
+        label: 'Declare martial law in Hilagang Luzara',
+        description: 'Sixty days, as allowed by the Constitution. Congress must review it.',
+        outcome: 'Soldiers take over. The opposition calls it a rehearsal for dictatorship. Congress convenes to vote on whether to revoke it; the Supreme Court receives six petitions.',
+        headline: 'MARTIAL LAW IN THE NORTH',
+        effects: {
+          stats: { crime: -6, courtTension: 15, protest: 15, church: -10, media: 12 },
+          flags: { martial_law: true },
+          vote: {
+            bill: 'Joint resolution to extend martial law in Hilagang Luzara',
+            appeal: 0,
+            onPass: { stats: { military: 8 } },
+            onFail: { stats: { capital: -8, approval: -4 }, flags: { martial_law_revoked: true } },
+          },
+        },
+      },
+      {
+        id: 'local_police',
+        label: 'Reinforce the local police only',
+        description: 'Avoid the appearance of overreach.',
+        outcome: 'Two more candidates are killed before election day.',
+        headline: 'CAMPAIGN DEATH TOLL RISES',
+        effects: { stats: { crime: 4, approval: -4 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ MAY 2030 — MIDTERMS ═════════════════════════
+  {
+    id: 'midterm_election',
+    month: 34,
+    priority: 10,
+    category: 'election',
+    title: 'Halalan 2030',
+    location: 'Command center, Palasyo ng Malaya',
+    special: 'midterm',
+    body: [
+      'Election night. The partial, unofficial count scrolls across every screen. Twelve Senate seats, the whole House, and every governor and mayor — the country’s verdict on the first half of your presidency.',
+    ],
+    choices: [
+      {
+        id: 'accept_results',
+        label: 'Accept the results and address the nation',
+        description: 'Whatever they are.',
+        outcome: 'You speak to the nation at midnight. “The people have spoken. I have heard them.”',
+        headline: 'MIDTERM RESULTS IN: A VERDICT ON THE PRESIDENT',
+        effects: { stats: { media: -3 } },
+      },
+      {
+        id: 'claim_fraud',
+        label: 'Question the results where your candidates lost',
+        description: 'Demand recounts in key races.',
+        outcome: 'Protests erupt on both sides. The COMELEC chair — who owes you nothing — rejects your claims on live television.',
+        headline: 'PALASYO CRIES FRAUD; COMELEC REJECTS CLAIMS',
+        effects: { stats: { protest: 15, approval: -6, courtTension: 6, media: 10 } },
+      },
+    ],
+  },
+
+  // ═════════════════════════ JUNE 2030 — END OF CHAPTER 1 ═════════════════════════
+  {
+    id: 'chapter1_end',
+    month: 35,
+    priority: 10,
+    category: 'chapter',
+    title: 'Kalahati',
+    location: 'Your study, Palasyo ng Malaya — 2 a.m.',
+    special: 'chapterEnd',
+    body: [
+      'Three years. Halfway. The Palasyo is quiet at 2 a.m., the only time it ever is.',
+      'On your desk: a stack of briefing papers for the second half of the term, a letter from your family, and a photograph from inauguration day that you barely recognize yourself in.',
+      'What kind of president will you be for the next three years?',
+    ],
+    variants: [
+      { when: [{ flag: 'trial_pending' }], text: 'And in two weeks, the Senate will convene as an impeachment court — to judge you.' },
+      { when: [{ flag: 'rival_open_war' }], text: 'Across the city, {rival} is preparing to take your job.' },
+      { when: [{ flag: 'house_lost' }], text: 'The House is no longer yours.' },
+    ],
+    choices: [
+      {
+        id: 'ch1_stay_course',
+        label: 'Stay the course',
+        description: 'Everything you have done, you would do again.',
+        outcome: 'You turn off the lamp. Tomorrow, the second half begins.',
+        effects: { flags: { ch2_stance: 'steady' } },
+      },
+      {
+        id: 'ch1_reset',
+        label: 'Reset: reshuffle the Cabinet and reach out to the opposition',
+        description: 'A new beginning for the second half.',
+        outcome: 'You write a list of names. Some will be surprised to be on it. Some will be surprised not to be.',
+        effects: { flags: { ch2_stance: 'reset' }, stats: { cabinetCohesion: 5, media: -3 } },
+      },
+      {
+        id: 'ch1_harden',
+        label: 'Harden: trust no one, consolidate power',
+        description: 'They came for you. Now you go for them.',
+        outcome: 'You pick up the phone and call the Chief of Staff of the Armed Forces. It is 2:14 a.m. He answers on the first ring.',
+        effects: { flags: { ch2_stance: 'hardline' }, stats: { military: 5, courtTension: 5 } },
+      },
+    ],
+  },
+];

@@ -1,0 +1,124 @@
+.map-stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  perspective: 1500px;
+  perspective-origin: 50% 30%;
+  background: radial-gradient(ellipse at 50% 40%, #0d2433 0%, #03080d 75%);
+  z-index: 0;
+}
+
+.map-camera {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  transition: transform 2.4s cubic-bezier(0.22, 0.8, 0.2, 1);
+}
+
+.map-plane {
+  width: min(125vh, 115vw);
+  aspect-ratio: 1;
+  transform: rotateX(56deg) rotateZ(-24deg);
+  transform-style: preserve-3d;
+  animation: map-drift 60s ease-in-out infinite alternate;
+  box-shadow: 0 60px 120px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes map-drift {
+  from { transform: rotateX(56deg) rotateZ(-28deg) translateZ(0); }
+  to   { transform: rotateX(52deg) rotateZ(-18deg) translateZ(40px); }
+}
+
+.map-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.land {
+  stroke: rgba(70, 55, 30, 0.6);
+  stroke-width: 1;
+  transition: opacity 1.2s ease, filter 1.2s ease;
+}
+.land--hi { filter: brightness(1.15) drop-shadow(0 0 10px rgba(214, 178, 94, 0.8)); }
+.land--dim { opacity: 0.45; }
+
+.city-dot { fill: #3a2a18; stroke: #f4e7c3; stroke-width: 1.2; }
+.city-dot--capital { fill: #c8452f; stroke: #fff3d0; stroke-width: 1.6; }
+.city-pulse {
+  fill: none;
+  stroke: #c8452f;
+  stroke-width: 1.5;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: pulse 2.6s ease-out infinite;
+}
+@keyframes pulse {
+  from { transform: scale(0.3); opacity: 1; }
+  to   { transform: scale(1.8); opacity: 0; }
+}
+
+.city-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  fill: #2d2416;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(240, 228, 196, 0.75);
+  stroke-width: 3px;
+}
+.city-label--capital { font-size: 14px; fill: #6d1c12; }
+
+.group-labels text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 34px;
+  letter-spacing: 14px;
+  fill: rgba(236, 214, 160, 0.55);
+  font-weight: 600;
+}
+.group-labels .sea-label {
+  font-size: 18px;
+  letter-spacing: 6px;
+  font-style: italic;
+  fill: rgba(150, 190, 210, 0.45);
+}
+
+.map-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(2, 6, 10, 0.85) 100%),
+    linear-gradient(to bottom, rgba(2, 6, 10, 0.55), transparent 25%, transparent 70%, rgba(2, 6, 10, 0.8));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-plane, .city-pulse { animation: none; }
+  .map-camera { transition: none; }
+}
+
+/* ───────── Embedded issue map (Agenda) ───────── */
+.map-stage--embedded { position: absolute; z-index: auto; border-radius: 10px; }
+.map-stage--embedded { perspective: 1300px; perspective-origin: 50% 20%; }
+.map-stage--embedded .map-plane { width: min(760px, 88%); animation-duration: 90s; }
+.map-stage--embedded .map-camera { transform: translateY(-9%); }
+
+.issue-pin { cursor: pointer; opacity: 0; animation: pin-in 0.6s cubic-bezier(0.22, 1.4, 0.4, 1) forwards; }
+.issue-pin:focus { outline: none; }
+.issue-pin__pulse { fill: none; stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: pulse 1.8s ease-out infinite; }
+.issue-pin__dot { stroke: #fff6dc; stroke-width: 2.5; filter: drop-shadow(0 3px 4px rgba(0,0,0,0.6)); transition: r 0.15s; }
+.issue-pin:hover .issue-pin__dot, .issue-pin:focus-visible .issue-pin__dot { r: 20; }
+.issue-pin__mark { text-anchor: middle; font-family: 'Inter', sans-serif; font-weight: 800; font-size: 21px; fill: #fff; pointer-events: none; }
+.issue-pin__tag { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.issue-pin:hover .issue-pin__tag, .issue-pin:focus-visible .issue-pin__tag, .issue-pin.is-hot .issue-pin__tag { opacity: 1; }
+.issue-pin__tag rect { fill: rgba(8, 14, 20, 0.88); stroke: rgba(214, 178, 94, 0.5); }
+.issue-pin__tag text { font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; fill: #f1e7cf; }
+.issue-pin:hover .issue-pin__tag rect, .issue-pin:focus-visible .issue-pin__tag rect { stroke: #d6b25e; fill: rgba(8, 14, 20, 0.97); }
+@keyframes pin-in { from { opacity: 0; transform-box: fill-box; } to { opacity: 1; } }
+/* In 3D, the flat camera layer sits in front of the tilted plane; only the pins should catch clicks. */
+.map-stage--embedded .map-camera,
+.map-stage--embedded .map-plane,
+.map-stage--embedded .map-svg { pointer-events: none; }
+.map-stage--embedded .issue-pin { pointer-events: auto; }
