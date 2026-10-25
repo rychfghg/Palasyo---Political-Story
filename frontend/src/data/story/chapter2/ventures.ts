@@ -1,5 +1,5 @@
 import type { StoryEvent } from '@/features/narrative/types/event';
-import { quick, then } from '../chapter1/helpers';
+import { quick, later as then } from '../chapter1/helpers';
 import { invest } from '../chapter1/ventures';
 
 /**

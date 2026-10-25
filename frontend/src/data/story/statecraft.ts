@@ -1,5 +1,5 @@
 import type { DraftSpec, StoryEvent } from '@/features/narrative/types/event';
-import { quick, then } from './chapter1/helpers';
+import { quick, later as then } from './chapter1/helpers';
 
 /**
  * Statecraft: bills the President drafts line by line, televised congressional investigations,

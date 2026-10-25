@@ -189,10 +189,33 @@ export function eventMonth(s: CampaignState, e: StoryEvent): number | undefined 
   if (e.month !== undefined) return e.month;
   if (!e.window) return undefined;
   const [from, to] = e.window;
-  return from + Math.floor(seededRandom(seedOf(s, `window:${e.id}`))() * (to - from + 1));
+  // Prefer quieter months in the window, so the story spreads evenly and fewer matters are crowded out.
+  const load = monthLoad();
+  const weights: number[] = [];
+  for (let m = from; m <= to; m++) weights.push(1 / Math.pow(load[m] ?? 1, 2));
+  const total = weights.reduce((n, w) => n + w, 0);
+  let roll = seededRandom(seedOf(s, `window:${e.id}`))() * total;
+  for (let i = 0; i < weights.length; i++) {
+    roll -= weights[i];
+    if (roll <= 0) return from + i;
+  }
+  return to;
 }
 
-const MAX_MATTERS_PER_MONTH = 9;
+let LOAD: Record<number, number> | null = null;
+/** How crowded each month is across all windowed events (computed once). */
+function monthLoad(): Record<number, number> {
+  if (LOAD) return LOAD;
+  const load: Record<number, number> = {};
+  for (const ev of ALL_EVENTS) {
+    if (ev.month !== undefined) load[ev.month] = (load[ev.month] ?? 0) + 1;
+    else if (ev.window) for (let m = ev.window[0]; m <= ev.window[1]; m++) load[m] = (load[m] ?? 0) + 1 / (ev.window[1] - ev.window[0] + 1);
+  }
+  LOAD = load;
+  return load;
+}
+
+const MAX_MATTERS_PER_MONTH = 10;
 
 /** Difficulty is a headwind (or tailwind) for the whole term, not just the starting numbers. */
 const DIFF_PULL: Record<string, { growth: number; inflation: number; approval: number }> = {
@@ -210,12 +233,12 @@ const isFixedBeat = (e: StoryEvent) => (e.priority ?? 0) >= 8 || !!e.special || 
  * at most two bills and about seven matters — the rest carry over to next month.
  */
 export function buildQueue(s: CampaignState): string[] {
-  // Ordinary matters that have waited more than eight months past their moment lapse: the world moved on.
+  // Ordinary matters that have waited more than twelve months past their moment lapse: the world moved on.
   // Follow-ups (no month of their own), high-priority beats, and chained events are never dropped.
   const lapsed = s.scheduled.filter((x) => {
     const e = EVENTS_BY_ID[x.event];
     const m = e ? eventMonth(s, e) : undefined;
-    return !!e && m !== undefined && x.month <= s.month && s.month - m > 8 && (e.priority ?? 0) <= 5 && !isFixedBeat(e);
+    return !!e && m !== undefined && x.month <= s.month && s.month - m > 12 && (e.priority ?? 0) <= 5 && !isFixedBeat(e);
   });
   if (lapsed.length) {
     const ids = new Set(lapsed.map((x) => x.event));
@@ -237,11 +260,14 @@ export function buildQueue(s: CampaignState): string[] {
   const deferred: StoryEvent[] = [];
   let bills = s.queue.filter((id) => isBill(EVENTS_BY_ID[id] ?? ({ id } as StoryEvent))).length;
   let count = s.queue.length;
+  // When a backlog builds, the desk takes up to two more matters a month.
+  const backlog = s.scheduled.filter((x) => x.month <= s.month).length;
+  const cap = MAX_MATTERS_PER_MONTH + (backlog > 20 ? 2 : backlog > 10 ? 1 : 0);
   for (const e of events) {
     if (isFixedBeat(e)) {
       kept.push(e);
       count++;
-    } else if (isBill(e) ? bills >= MAX_BILLS_PER_MONTH || count >= MAX_MATTERS_PER_MONTH : count >= MAX_MATTERS_PER_MONTH) {
+    } else if (isBill(e) ? bills >= MAX_BILLS_PER_MONTH || count >= cap : count >= cap) {
       deferred.push(e);
     } else {
       kept.push(e);

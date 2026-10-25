@@ -1,6 +1,7 @@
 import { EVENTS_BY_ID } from '@/data/story';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { batchedStorage } from '@/shared/utils/saveCodec';
 import type { ChoiceEffects } from '@/features/narrative/types/prologue';
 import { BUDGET_LINES, INHERITED_ECONOMY, TOTAL_FY2027 } from '@/data/government/economy';
 import { INITIAL_POLITICS, buildQueue, monthTick, openEvent, resolveChoice } from '../engine/engine';
@@ -538,6 +539,8 @@ export const useGameStore = create<GameState>()(
     {
       name: 'palasyo-autosave',
       version: 2,
+      // Saves are compressed and batched so long games fit within the browser's storage limit.
+      storage: createJSONStorage(() => batchedStorage),
       // v1 saves simply lack the presidency fields; defaults fill them and initPresidency() builds them.
       migrate: (persisted) => persisted as GameState,
     },

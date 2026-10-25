@@ -1,5 +1,5 @@
 import type { Condition, StoryEvent } from '@/features/narrative/types/event';
-import { quick, then } from './chapter1/helpers';
+import { quick, later as then } from './chapter1/helpers';
 
 /**
  * The bigger twists: a coup, a hidden recording, a secret illness, a spy in the Cabinet,

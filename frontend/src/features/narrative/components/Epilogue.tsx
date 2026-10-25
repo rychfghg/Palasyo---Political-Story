@@ -8,6 +8,7 @@ import type { CampaignState } from '@/features/game-engine/types/campaign';
 import { ADVISER_POSTS } from '@/data/government/cabinet';
 import { EndGameModal } from './EndGameModal';
 import { HistoryBook } from '@/features/extras/components/RecordView';
+import { ENDING_THEMES, EndingBanner, endingKey } from './EndingBanner';
 
 const FATES: Record<string, { title: string; text: string }> = {
   imprisoned: { title: 'Bilanggo', text: 'The anti-graft court found you guilty of plunder. You were sentenced to reclusion perpetua and taken to the same penitentiary where you once sent others. Your portrait still hangs in the Palasyo’s gallery of presidents — the guides now pause before it.' },
@@ -18,6 +19,8 @@ const FATES: Record<string, { title: string; text: string }> = {
   plea: { title: 'Ang Kasunduan', text: 'You pleaded guilty to a lesser charge, returned ₱900 million, and served four years of house arrest in {home}. You wrote a memoir. It did not sell well.' },
   senator: { title: 'Mula Palasyo Hanggang Senado', text: 'You took your oath as Senator — the first former President to sit in the Senate in generations. From the chamber where you once counted votes, you now cast them, and the country still listens when you rise to speak.' },
   legislator: { title: 'Mula Palasyo Hanggang Kongreso', text: 'You took your seat in Congress — the first former President to serve in the legislature in generations. From the back rows, you watch your successors make your mistakes, and occasionally your speeches still fill the gallery.' },
+  beloved: { title: 'Ama ng Bayan', text: 'You left office loved. Crowds lined the road home from Maynilad. Schools are already being named after you, and every candidate in the next election promises to govern "the way you did". Historians will argue about the details; the people already have their verdict.' },
+  martial: { title: 'Batas Militar', text: 'Martial law was never lifted. Soldiers still guard the bridges, the curfew still empties the streets at ten, and the newspapers print what they are told. You rule — but you can never again walk among the people you rule.' },
   free: { title: 'Pribadong Mamamayan', text: 'You went home. No charges came. You plant mango trees, hold your grandchildren, and give interviews every June 30 about what the presidency was really like.' },
 };
 
@@ -27,7 +30,8 @@ export function Epilogue() {
   if (!economy || !player) return null;
 
   const fateKey = String(flags.final_fate ?? 'free');
-  const fate = FATES[fateKey] ?? FATES.free;
+  const ending = endingKey(fateKey, economy.approval, flags);
+  const fate = (ending === 'beloved' || ending === 'martial' ? FATES[ending] : FATES[fateKey]) ?? FATES.free;
   const ratio = debtToGdp(economy);
   const startRatio = (INHERITED_ECONOMY.debt / INHERITED_ECONOMY.gdp) * 100;
   const t = tokens(state as unknown as CampaignState);
@@ -59,7 +63,8 @@ export function Epilogue() {
   const verdictLine = Math.round(economy.approval) >= 60 ? 'You leave office popular.' : Math.round(economy.approval) >= 40 ? 'You leave office with the country divided about you.' : 'You leave office deeply unpopular.';
 
   return (
-    <article className="paper chapter-end">
+    <article className={`paper chapter-end ending ending--${ENDING_THEMES[ending]?.theme ?? 'free'}`}>
+      <EndingBanner ending={ending} />
       <p className="kicker">Wakas · {fullName(player)}, President of the Republic, 2027–2033</p>
       <h2 className="paper__title">{fate.title}</h2>
       <p>{fill(fate.text, t)}</p>

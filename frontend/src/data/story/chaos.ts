@@ -1,6 +1,6 @@
 import type { Condition, StoryEvent } from '@/features/narrative/types/event';
 import { COMPANIES } from '@/data/world/companies';
-import { quick, then } from './chapter1/helpers';
+import { quick, later as then } from './chapter1/helpers';
 import { invest } from './chapter1/ventures';
 
 /**

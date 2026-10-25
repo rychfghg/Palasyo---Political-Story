@@ -24,6 +24,9 @@ interface UiState {
   openCabinetWizard: () => void;
   /** The last decision whose adviser reactions were closed. */
   reactionSeen: string;
+  /** Day One: the player opened the budget from the checklist. */
+  budgetRequested: boolean;
+  requestBudget: () => void;
   setReactionSeen: (key: string) => void;
 }
 
@@ -51,5 +54,7 @@ export const useUiStore = create<UiState>((set) => ({
   },
   openCabinetWizard: () => set({ cabinetWizardForced: true }),
   reactionSeen: '',
+  budgetRequested: false,
+  requestBudget: () => set({ budgetRequested: true }),
   setReactionSeen: (reactionSeen) => set({ reactionSeen }),
 }));

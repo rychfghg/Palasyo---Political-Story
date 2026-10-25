@@ -1,5 +1,5 @@
 import type { StoryEvent } from '@/features/narrative/types/event';
-import { billEvent, quick, then } from './helpers';
+import { billEvent, quick, later as then } from './helpers';
 
 /**
  * Chapter 1 story arcs: every first decision schedules what comes next.

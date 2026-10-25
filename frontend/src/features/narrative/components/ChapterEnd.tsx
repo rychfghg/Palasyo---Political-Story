@@ -6,6 +6,7 @@ import type { FlagValue, Politics } from '@/features/narrative/types/event';
 import type { Economy } from '@/features/game-engine/types/government';
 import { Epilogue } from './Epilogue';
 import { EndGameModal } from './EndGameModal';
+import { ENDING_THEMES, EndingBanner } from './EndingBanner';
 
 interface Verdict {
   title: string;
@@ -61,7 +62,8 @@ export function ChapterEnd() {
   if (flags.took_bribe && !flags.confessed) threads.push('The Tiu money has not been forgotten');
 
   return (
-    <article className="paper chapter-end">
+    <article className={`paper chapter-end ${ending ? `ending ending--${ENDING_THEMES[String(flags.game_over)]?.theme ?? 'fall'}` : ''}`}>
+      {ending && <EndingBanner ending={String(flags.game_over)} />}
       <p className="kicker">{ending ? 'Wakas ng Panunungkulan · The End of Your Presidency' : `${CHAPTER_1_TITLE} · Complete`}</p>
       <h2 className="paper__title">{v.title}</h2>
       <p>{v.text}</p>

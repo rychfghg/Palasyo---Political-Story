@@ -15,6 +15,8 @@ import { FrontPage, PollsCard } from './FrontPage';
 import { DraftingTable } from '@/features/extras/components/DraftingTable';
 import { SituationMap, SocialTrends } from '@/features/extras/components/LiveWorld';
 import { CabinetScene } from '@/features/extras/components/CabinetScene';
+import { ComingUp } from '@/features/extras/components/ComingUp';
+import { affectsOf } from '@/features/narrative/utils/affects';
 
 export const CATEGORY_LABEL: Record<EventCategory, string> = {
   family: 'Pamilya · Family',
@@ -69,6 +71,8 @@ function EventCard({ eventId }: { eventId: string }) {
   const choices = availableChoices(s, event);
 
   return (
+    <>
+    <ChoiceKeys count={event.draft ? 0 : choices.length} onPick={(i) => choose(event.id, choices[i].id)} />
     <article className="paper event" key={event.id}>
       <header className="event__head">
         <span className="event__cat" style={{ background: CATEGORY_COLOR[event.category] }}>{CATEGORY_LABEL[event.category]}</span>
@@ -129,15 +133,17 @@ function EventCard({ eventId }: { eventId: string }) {
         {choices.map((c) => (
           <li key={c.id}>
             <button className="choice" onClick={() => choose(event.id, c.id)}>
-              <b>{fill(c.label, t)}</b>
+              <b><kbd className="choice__key" aria-hidden>{choices.indexOf(c) + 1}</kbd>{fill(c.label, t)}</b>
               <span>{fill(c.description, t)}</span>
               {c.effects.spend ? <small className="choice__cost">Cost: {peso(c.effects.spend)}</small> : null}
               {c.effects.vote ? <small className="choice__cost">Goes to a vote in Congress</small> : null}
+              {affectsOf(c.effects).length > 0 && <small className="choice__affects">Affects: {affectsOf(c.effects).join(', ')}</small>}
             </button>
           </li>
         ))}
       </ul>}
     </article>
+    </>
   );
 }
 
@@ -323,6 +329,7 @@ export function AgendaView() {
       )}
       <aside className="stack">
         <PollsCard />
+        <ComingUp />
         <SituationMap />
         <SocialTrends />
         <Gauges />
@@ -330,4 +337,25 @@ export function AgendaView() {
       </aside>
     </div>
   );
+}
+
+/** Keys 1–4 pick a choice, when no pop-up is open and the player is not typing. */
+function ChoiceKeys({ count, onPick }: { count: number; onPick: (i: number) => void }) {
+  useEffect(() => {
+    if (!count) return;
+    const on = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+      if (document.querySelector('.modal-backdrop, [role="dialog"]')) return;
+      const n = Number(e.key);
+      if (n >= 1 && n <= Math.min(4, count)) {
+        e.preventDefault();
+        onPick(n - 1);
+      }
+    };
+    window.addEventListener('keydown', on);
+    return () => window.removeEventListener('keydown', on);
+  }, [count, onPick]);
+  return null;
 }

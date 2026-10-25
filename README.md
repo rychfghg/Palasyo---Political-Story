@@ -118,12 +118,23 @@ The game runs entirely in the browser. No server, account, or internet connectio
 - **Month summary** — one screen at the end of each month: both newspapers, the economy, the Bangko Sentral, new texts, achievements, promises, warnings, and who is drifting away from you.
 - **Statistics** — charts of approval, inflation, unemployment, debt, the peso, growth, and regional polls across your whole term, with markers on headline decisions.
 - **Cabinet meetings as scenes** — your secretaries argue around the table, each for one option. The one you back trusts you more; those you pass over remember.
+- **Day One checklist** — your first day is one checklist (form the Cabinet, draft the budget, start governing) instead of a chain of pop-ups.
+- **Consequence hints** — every choice lists what it touches ("Affects: prices, approval, the Treasury") without giving away the amounts.
+- **Coming up** — a card beside the Agenda lists projects about to open, promises falling due, elections, the next SONA and press conference, and how many consequences are still brewing.
+- **Difficulty badge** — the difficulty you chose is shown under your name.
 - **Election campaigns** — before the 2030 midterms and the 2033 race, choose up to four provinces on the map, a budget, and a message, and see the expected poll gains before launching.
 
 ### Atmosphere
 - **Situation map** — storms crossing the islands, protests, opposition governors, and newly opened projects.
 - **Ambient sound** — a generated soundtrack that darkens during crises (off by default).
 - **Crisis mood** — a red tint over the screen during emergencies.
+- **Sound effects** — a gavel for votes, camera shutters before press conferences, a phone buzz for new texts, and crowd noise at protests (only when sound is on).
+- **Distinct endings** — prison, exile, pardon, the Senate, a quiet retirement, beloved statesman, martial-law ruler, impeachment, resignation, People Power, or a coup, each with its own emblem and colors.
+
+### Accessibility
+- **Keyboard** — press 1–4 to pick a choice on the Agenda.
+- **Larger text** and a **colorblind-safe palette** (blue for good, orange for bad) in Settings.
+- **Mobile layout** — on phones the side bar becomes a bottom bar, the header and tabs scroll sideways, and pop-ups open as full-width sheets.
 
 ### After the presidency
 - **Your own race** — run for the Senate or House, take your seat, and choose what kind of legislator to be — or face charges, exile, a pardon, or a plea deal.
@@ -148,7 +159,7 @@ Events are plain data in `frontend/src/data/story/`. Each has a title, location,
 Randomness is **seeded by your name**, so the same save always plays out consistently, while different presidents get different Congresses, candidates, crises, and outcomes.
 
 ### Saving
-The entire game state is a single object saved automatically to the browser's local storage after every change.
+The entire game state is a single object saved automatically to the browser's local storage, compressed (about 4–6× smaller) and written half a second after the last change, or immediately when the page is closed or hidden. If storage runs low, older history (ledger, news, texts) is trimmed; if saving still fails, a warning appears.
 
 ---
 
@@ -197,7 +208,7 @@ Palasyo - A Political Story/
 
 ## Saving and loading
 
-- **Autosave** — every change is saved instantly in your browser.
+- **Autosave** — every change is saved automatically in your browser, compressed so long games fit.
 - **Three save slots** — on the main menu and in Settings: save, load, or delete.
 - **Export** — Settings → *Export save (.json)* downloads your game.
 - Saves live in the browser you played in; clearing site data deletes them. Online saves are planned for later.
@@ -232,6 +243,7 @@ Run inside `frontend/`:
 | `npm run build` | Type-check and build for production |
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Check TypeScript without building |
+| `npm test` | Run the automated tests: save compression, story-data integrity, and a full playthrough on each difficulty |
 
 ---
 

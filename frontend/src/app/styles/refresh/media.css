@@ -1,0 +1,123 @@
+/* ─── Front pages ─── */
+.modal.frontpage-modal { width: min(1100px, 100%); }
+.papers { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.paper-front { padding: 16px 18px; border-radius: 6px; background: linear-gradient(180deg, #f4ecd6, #e8dcbc); color: #1f1a12; box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45); font-family: var(--font-display, Georgia, serif); }
+.paper-front.is-critical { background: linear-gradient(180deg, #ecece6, #d9d8cf); }
+.paper-front__mast { text-align: center; border-bottom: 3px double #1f1a12; padding-bottom: 6px; margin-bottom: 10px; }
+.paper-front__mast b { display: block; font-size: 30px; letter-spacing: 0.02em; line-height: 1; }
+.paper-front.is-critical .paper-front__mast b { font-family: Impact, 'Arial Black', sans-serif; color: #7a1f16; letter-spacing: 0.04em; }
+.paper-front__mast small { font-family: var(--font-body, sans-serif); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a4a30; }
+.paper-front h3 { font-size: 24px; line-height: 1.15; margin: 4px 0 8px; color: #120e08; }
+.paper-front.is-critical h3 { font-family: 'Arial Black', sans-serif; font-size: 21px; }
+.modal .paper-front p, .paper-front__deck { color: #3a2f1f; font-style: italic; margin: 0 0 10px; }
+.cartoon { display: flex; gap: 10px; align-items: center; margin: 8px 0; padding: 8px; border: 1px solid #b8a67a; background: #fbf6e6; }
+.cartoon .portrait { filter: grayscale(0.85) contrast(1.2); border-radius: 50%; }
+.cartoon figcaption { display: flex; flex-direction: column; gap: 4px; }
+.cartoon__bubble { position: relative; padding: 8px 10px; border: 2px solid #1f1a12; border-radius: 14px; background: #fff; font-family: 'Comic Sans MS', 'Comic Neue', cursive; font-size: 13px; color: #1f1a12; }
+.cartoon small { font-family: var(--font-body, sans-serif); font-size: 9px; color: #7a6a4a; text-transform: uppercase; letter-spacing: 0.1em; }
+.paper-front__poll { display: flex; flex-direction: column; margin: 8px 0; padding: 8px 10px; background: #7a1f16; color: #fff; font-family: var(--font-body, sans-serif); }
+.paper-front__poll small { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.8; }
+.paper-front__poll b { font-size: 30px; line-height: 1; }
+.paper-front__poll span { font-size: 11px; }
+.paper-front__briefs { margin: 8px 0 0; padding: 8px 0 0 16px; border-top: 1px solid rgba(0, 0, 0, 0.2); font-family: var(--font-body, sans-serif); font-size: 12px; color: #2b2418; }
+.paper-front__briefs li { margin-bottom: 3px; }
+.paper-econ { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
+.paper-econ > b { display: block; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.paper-econ ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; opacity: 0.85; }
+@media (max-width: 800px) { .papers { grid-template-columns: 1fr; } }
+
+/* ─── Polls ─── */
+.polls__group { margin-bottom: 10px; }
+.polls__group > small { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; margin-bottom: 4px; }
+.polls__row { display: grid; grid-template-columns: 1fr 70px 36px; gap: 8px; align-items: center; font-size: 12px; margin-bottom: 3px; }
+.polls__bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.polls__bar i { display: block; height: 100%; }
+.polls__row b { text-align: right; }
+.hud__sub { display: block; font-size: 9.5px; letter-spacing: 0.02em; opacity: 0.65; margin-top: 1px; white-space: nowrap; }
+
+/* ─── Debt tally ─── */
+.debt-tally ul { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+.debt-tally li { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dashed rgba(255, 255, 255, 0.08); }
+.debt-tally li b { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.debt-tally li.is-good b { color: #8fd19e; }
+.debt-tally li.is-bad b { color: #e0806f; }
+.debt-tally__total { border-top: 2px solid rgba(214, 178, 94, 0.5); border-bottom: 0 !important; margin-top: 4px; padding-top: 8px !important; font-weight: 700; }
+.debt-tally__total b { color: #f1dfae; font-size: 16px; }
+.debt-tally__net { font-size: 12px; margin: 8px 0; }
+.debt-tally__net.is-bad { color: #f6a390; }
+.debt-tally__net.is-good { color: #8fd19e; }
+.debt-tally__pay { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+
+/* ─── Save slots & difficulty ─── */
+.save-slots { display: flex; flex-direction: column; gap: 6px; }
+.save-slot { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(214, 178, 94, 0.25); }
+.save-slot.is-empty { border-style: dashed; opacity: 0.8; }
+.save-slot__n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: rgba(214, 178, 94, 0.2); color: var(--gold); font-weight: 700; }
+.save-slot__info { display: flex; flex-direction: column; min-width: 0; }
+.save-slot__info b { color: #f4ecd8; }
+.save-slot__info small { font-size: 11px; }
+.save-slot__actions { display: flex; gap: 4px; }
+.menu__slots { position: relative; z-index: 2; max-width: 520px; margin-top: 18px; padding: 14px; border-radius: 14px; background: rgba(10, 17, 25, 0.75); border: 1px solid rgba(214, 178, 94, 0.25); backdrop-filter: blur(6px); }
+.menu__slots h3 { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 0 0 8px; }
+.difficulty { border: 0; padding: 0; margin: 12px 0; }
+.difficulty legend { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+.difficulty__cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.difficulty__card { display: flex; flex-direction: column; gap: 4px; padding: 10px; border-radius: 10px; border: 2px solid rgba(0, 0, 0, 0.15); background: rgba(255, 255, 255, 0.5); cursor: pointer; }
+.difficulty__card input { display: none; }
+.difficulty__card small { font-size: 11px; line-height: 1.35; opacity: 0.8; }
+.difficulty__card.is-picked { border-color: #9c7a2c; background: rgba(214, 178, 94, 0.25); }
+.difficulty__card.is-hard.is-picked { border-color: #9a3a2c; background: rgba(192, 70, 60, 0.18); }
+@media (max-width: 640px) { .difficulty__cards { grid-template-columns: 1fr; } }
+
+/* ─── Phone ─── */
+.office__top { position: relative; }
+.phone-btn { position: relative; width: 46px; height: 46px; border-radius: 14px; border: 1px solid rgba(214, 178, 94, 0.4); background: rgba(10, 17, 25, 0.85); font-size: 22px; cursor: pointer; flex-shrink: 0; align-self: center; }
+.phone-btn.has-new { animation: phone-ring 1.6s ease-in-out infinite; border-color: var(--gold); }
+.phone-btn i { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: #c0463c; color: #fff; font-size: 11px; font-style: normal; font-weight: 700; display: grid; place-items: center; }
+@keyframes phone-ring { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(-12deg); } 80% { transform: rotate(12deg); } 85% { transform: rotate(-8deg); } 90% { transform: rotate(8deg); } }
+.modal.phone-modal { width: min(460px, 100%); }
+.phone { border-radius: 30px; padding: 12px; background: #050709; border: 2px solid #2a2f38; box-shadow: inset 0 0 0 2px #111; }
+.phone__screen { max-height: 62vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 8px; border-radius: 22px; background: linear-gradient(180deg, #0f1a26, #0a1119); }
+.phone__empty { padding: 30px 10px; text-align: center; }
+.text { padding: 8px; border-radius: 14px; background: rgba(255, 255, 255, 0.03); }
+.text.is-unread { box-shadow: 0 0 0 1px rgba(214, 178, 94, 0.5); }
+.text header { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.text header .portrait { border-radius: 50%; }
+.text header b { display: block; font-size: 13px; color: #f4ecd8; }
+.text header small { font-size: 10px; opacity: 0.6; }
+.modal .text__bubble { margin: 0 0 6px; padding: 9px 12px; border-radius: 4px 16px 16px 16px; background: #233246; color: #eef2f6; font-size: 13px; line-height: 1.45; }
+.text__replies { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.text__reply { max-width: 85%; padding: 7px 12px; border-radius: 16px 16px 4px 16px; border: 1px solid rgba(90, 155, 212, 0.6); background: rgba(90, 155, 212, 0.15); color: #dbe8f5; font-size: 12px; text-align: right; cursor: pointer; }
+.text__reply:hover { background: rgba(90, 155, 212, 0.35); }
+.modal .text__me { margin: 0; text-align: right; font-size: 12px; color: #9fc3e6; }
+.modal .text__outcome { margin: 6px 0 0; font-size: 12px; font-style: italic; color: #f1dfae; }
+
+/* ─── Press conference ─── */
+.modal.press-modal { width: min(820px, 100%); }
+.press-room { display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start; }
+.press-room__podium { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 8px 30px; border-radius: 12px 12px 4px 4px; background: linear-gradient(180deg, #5a3d20, #2e1f10); border: 1px solid rgba(214, 178, 94, 0.5); text-align: center; font-size: 12px; color: #f1dfae; position: relative; }
+.press-room__podium::after { content: '⚜'; position: absolute; bottom: 6px; color: var(--gold); }
+.press-q__reporter { display: flex; gap: 10px; align-items: center; }
+.press-q__reporter .portrait { border-radius: 50%; }
+.press-q__reporter b { display: block; color: #f4ecd8; }
+.press-q__reporter small { font-size: 11px; opacity: 0.65; }
+.modal .press-q__text { font-family: var(--font-display, serif); font-size: 18px; line-height: 1.45; margin: 12px 0; padding: 12px 14px; border-left: 3px solid var(--gold); background: rgba(255, 255, 255, 0.04); }
+.press-q__tones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.press-summary ul { padding-left: 18px; margin: 8px 0 14px; }
+@media (max-width: 700px) { .press-room { grid-template-columns: 1fr; } .press-q__tones { grid-template-columns: 1fr; } }
+
+/* ─── State of the Nation Address ─── */
+.modal.sona-modal { width: min(860px, 100%); }
+.sona-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.pick-chip { padding: 8px 12px; border-radius: 18px; border: 1px solid rgba(214, 178, 94, 0.35); background: rgba(255, 255, 255, 0.04); color: inherit; font-size: 13px; cursor: pointer; }
+.pick-chip.is-picked { background: rgba(214, 178, 94, 0.22); border-color: var(--gold); color: #fff7e0; }
+.modal .sona-record { padding: 8px 12px; border-radius: 10px; background: rgba(214, 178, 94, 0.1); font-size: 12px; }
+.sona-result ul { padding-left: 18px; margin: 8px 0 14px; }
+
+/* ─── Office tools (sound, phone) ─── */
+.office__tools { display: flex; gap: 8px; align-items: center; align-self: center; }
+.sound-btn { width: 46px; height: 46px; border-radius: 14px; border: 1px solid rgba(214, 178, 94, 0.4); background: rgba(10, 17, 25, 0.85); font-size: 20px; cursor: pointer; }
+.sound-btn.is-on { border-color: var(--gold); box-shadow: 0 0 12px rgba(214, 178, 94, 0.35); }
+.crisis-tint { position: fixed; inset: 0; pointer-events: none; z-index: 5; opacity: 0; transition: opacity 1.2s; background: radial-gradient(ellipse at center, transparent 55%, rgba(160, 20, 20, 0.35) 100%); }
+.crisis-tint.is-on { opacity: 1; animation: crisis-breathe 3s ease-in-out infinite; }
+@keyframes crisis-breathe { 50% { opacity: 0.6; } }

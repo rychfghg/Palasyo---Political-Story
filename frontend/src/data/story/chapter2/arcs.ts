@@ -1,5 +1,5 @@
 import type { Condition, StoryEvent } from '@/features/narrative/types/event';
-import { billEvent, quick, then } from '../chapter1/helpers';
+import { billEvent, quick, later as then } from '../chapter1/helpers';
 
 const GENUINE: Condition = { any: [{ flag: 'took_bribe' }, { flag: 'pork_deal' }, { flag: 'infra_scandal', is: 'covered' }, { flag: 'infra_scandal', is: 'protected' }, { tag: 'compromised' }] };
 const CLEAN: Condition = { none: [GENUINE] };

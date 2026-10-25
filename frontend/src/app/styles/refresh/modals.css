@@ -1,0 +1,23 @@
+/* ─── Centered modal ─── */
+.modal-backdrop { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: rgba(2, 6, 10, 0.72); backdrop-filter: blur(4px); animation: fade-in 0.2s; }
+.modal { position: relative; width: min(680px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; border-radius: 14px; padding: 22px 24px 20px; background: linear-gradient(165deg, #182433, #0a1119); border: 1px solid rgba(214, 178, 94, 0.35); box-shadow: 0 40px 90px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.05); animation: modal-in 0.28s cubic-bezier(0.22, 1.2, 0.36, 1); }
+.modal__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.modal__head h2 { font-size: 28px; color: var(--gold); }
+.modal__close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: var(--text-light); }
+.modal__close:hover { background: rgba(255, 255, 255, 0.12); }
+.modal .pulse { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); margin-bottom: 10px; }
+.modal .pulse__card { transform: none; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+/* ─── Warning modal ─── */
+.warn-modal .warning-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.warn-modal .warning { animation: none; backdrop-filter: none; grid-template-columns: 30px 1fr; }
+.warn-modal__foot { display: flex; justify-content: flex-end; }
+.warn-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(224, 128, 111, 0.6); background: rgba(120, 30, 30, 0.5); color: #f6d3c9; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+.warn-chip:hover { background: rgba(140, 40, 40, 0.7); }
+
+/* ─── Warning chip in the tab row ─── */
+.tabs { align-items: center; }
+.tabs .warn-chip { margin-left: auto; padding: 4px 10px; font-size: 11px; flex-shrink: 0; }
+.warn-chip span { font-weight: 500; opacity: 0.85; }
+.warn-chip:not(.is-danger) { border-color: rgba(214, 178, 94, 0.55); background: rgba(90, 70, 20, 0.45); color: #f1dfae; }

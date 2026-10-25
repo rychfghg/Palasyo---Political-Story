@@ -98,4 +98,5 @@ export function quick(
 }
 
 /** Schedules a follow-up event a few months later. */
-export const then = (event: string, inMonths = 2) => ({ schedule: [{ event, inMonths }] });
+// Not exported as `then`: a module exporting `then` looks like a Promise to loaders that await it.
+export const later = (event: string, inMonths = 2) => ({ schedule: [{ event, inMonths }] });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { decompress, discardPendingSaves, flushSaves } from '@/shared/utils/saveCodec';
 
 const AUTOSAVE = 'palasyo-autosave';
 const SLOTS = [1, 2, 3];
@@ -18,7 +19,7 @@ const DIFFICULTY: Record<string, string> = { easy: 'Honeymoon', normal: 'Normal'
 function read(raw: string | null): SlotInfo | null {
   if (!raw) return null;
   try {
-    const st = JSON.parse(raw).state;
+    const st = JSON.parse(decompress(raw)).state;
     if (!st?.player) return null;
     return {
       name: `${st.player.firstName} ${st.player.lastName}`,
@@ -50,6 +51,7 @@ export function SaveSlots({ compact = false }: { compact?: boolean }) {
   const current = read(get(AUTOSAVE));
 
   const save = (n: number) => {
+    flushSaves();
     const raw = get(AUTOSAVE);
     if (!raw || !current) return;
     try {
@@ -63,6 +65,7 @@ export function SaveSlots({ compact = false }: { compact?: boolean }) {
   const load = (n: number) => {
     const raw = get(key(n));
     if (!raw) return;
+    discardPendingSaves();
     try {
       localStorage.setItem(AUTOSAVE, raw);
       localStorage.removeItem('palasyo-cabinet-later');

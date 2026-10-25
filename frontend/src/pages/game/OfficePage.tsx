@@ -11,6 +11,9 @@ import { OfficesMenu } from './OfficesMenu';
 import { CrisisTint } from '@/features/extras/components/LiveWorld';
 import { Tutorial } from '@/features/extras/components/Tutorial';
 import { CampaignPlanner } from '@/features/extras/components/Campaign';
+import { SaveWarning } from '@/shared/components/ui/SaveWarning';
+import { DayOne } from '@/features/extras/components/DayOne';
+import { SoundCues } from '@/features/extras/components/SoundCues';
 import { PressConference, Sona } from '@/features/extras/components/PressAndSona';
 
 /** The main tabs are the branches of government; the executive offices sit behind one button. */
@@ -22,9 +25,12 @@ const TABS = [
   { to: '/office/bank', label: 'Bangko Sentral' },
 ];
 
+const DIFF_LABEL: Record<string, string> = { easy: 'Honeymoon', normal: 'Normal', hard: 'Crisis Republic' };
+
 /** The President’s desk: indicators on top, the machinery of government in tabs below. */
 export function OfficePage() {
-  const { player, phase, government, initPresidency, ensureInstitutions } = useGameStore();
+  const { player, phase, government, initPresidency, ensureInstitutions, flags } = useGameStore();
+  const difficulty = String(flags.difficulty ?? 'normal');
   const setMap = useUiStore((s) => s.setMap);
 
   useEffect(() => setMap('all'), [setMap]);
@@ -45,6 +51,7 @@ export function OfficePage() {
         <div>
           <p className="kicker kicker--gold">{COUNTRY.palace}</p>
           <h1 className="office__title">President {player.lastName}</h1>
+          <span className={`diff-badge diff-badge--${difficulty}`} title="Difficulty, chosen at the start of the game">{DIFF_LABEL[difficulty] ?? 'Normal'}</span>
         </div>
         <TreasuryHud />
       </header>
@@ -61,9 +68,12 @@ export function OfficePage() {
         <Outlet />
       </div>
       <Tutorial />
+      <DayOne />
       <CabinetWizard />
       <BudgetModal />
       <CrisisTint />
+      <SaveWarning />
+      <SoundCues />
       <Sona />
       <PressConference />
       <CampaignPlanner />

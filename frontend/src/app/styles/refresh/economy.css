@@ -1,0 +1,82 @@
+/* ─── The year's books ─── */
+.books__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.books__head .section-title { margin: 0; }
+.books__years { display: flex; gap: 4px; flex-wrap: wrap; }
+.books__years button { padding: 4px 10px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.14); background: transparent; color: var(--text-light); font-size: 12px; }
+.books__years button.is-active { background: rgba(214, 178, 94, 0.18); border-color: rgba(214, 178, 94, 0.6); color: var(--gold); }
+.books__totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0; }
+.books__totals div { padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); }
+.books__totals small { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.books__totals b { font-size: 22px; font-family: var(--font-display, serif); }
+.books__totals .is-in b { color: #8fd19e; }
+.books__totals .is-out b { color: #e0806f; }
+.books__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.books__cols h4 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.books .bar i.is-good { background: linear-gradient(90deg, #3f8f58, #8fd19e); }
+.books .bar i.is-bad { background: linear-gradient(90deg, #8f3f35, #e0806f); }
+@media (max-width: 760px) { .books__totals { grid-template-columns: repeat(2, 1fr); } .books__cols { grid-template-columns: 1fr; } }
+
+/* ─── Court global companies ─── */
+.court-odds { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 10px; align-items: center; margin-bottom: 14px; }
+.court-odds div { padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(214, 178, 94, 0.3); background: rgba(214, 178, 94, 0.06); }
+.court-odds small { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.court-odds b { color: var(--gold); font-size: 18px; }
+.court-odds p { margin: 0; }
+@media (max-width: 760px) { .court-odds { grid-template-columns: repeat(2, 1fr); } .court-odds p { grid-column: 1 / -1; } }
+.company-grid { gap: 14px; }
+.company { position: relative; border-radius: 12px; padding: 16px; background: linear-gradient(165deg, rgba(24, 36, 51, 0.95), rgba(10, 17, 25, 0.95)); border: 1px solid rgba(214, 178, 94, 0.22); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35); transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; gap: 10px; }
+.company::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; border-radius: 12px 12px 0 0; background: linear-gradient(90deg, #d6b25e, #9c7a2c 60%, transparent); }
+.company:hover { transform: translateY(-2px); border-color: rgba(214, 178, 94, 0.5); }
+.company.is-here { border-color: rgba(143, 209, 158, 0.55); }
+.company.is-here::before { background: linear-gradient(90deg, #8fd19e, #3f8f58 60%, transparent); }
+.company header { display: flex; gap: 10px; align-items: center; }
+.company__logo { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; letter-spacing: 0.04em; color: #1a1408; background: linear-gradient(135deg, #f1dfae, #d6b25e 55%, #9c7a2c); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.company header b { font-family: var(--font-display, serif); font-size: 17px; color: #f4ecd8; }
+.company header small { display: block; font-size: 11px; opacity: 0.7; }
+.company > p { font-size: 13px; line-height: 1.5; opacity: 0.85; margin: 0; flex: 1; }
+.company__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0; }
+.company__stats div { padding: 6px 8px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); }
+.company__stats dt { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
+.company__stats dd { margin: 0; font-weight: 600; color: #f1dfae; }
+.company .offer-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.company .offer-row .btn { flex: 1; }
+.company__status { margin: 0; padding: 8px; border-radius: 8px; text-align: center; font-weight: 600; background: rgba(143, 209, 158, 0.12); color: #8fd19e; }
+.company__status.is-muted { background: rgba(255, 255, 255, 0.04); color: inherit; opacity: 0.7; font-weight: 500; }
+
+/* ─── Portfolio ─── */
+.portfolio { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.portfolio li { display: grid; grid-template-columns: 1fr auto 170px; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); }
+.portfolio li.is-building { opacity: 0.75; border-style: dashed; }
+.portfolio li small { display: block; font-size: 11px; opacity: 0.65; }
+.portfolio__income { font-weight: 700; color: #8fd19e; font-size: 16px; }
+.portfolio__income small { display: inline; }
+.portfolio__status { font-size: 11px; text-align: right; color: #f1dfae; }
+.portfolio__status.is-open { color: #8fd19e; }
+@media (max-width: 640px) { .portfolio li { grid-template-columns: 1fr auto; } .portfolio__status { grid-column: 1 / -1; text-align: left; } }
+
+/* ─── Investment earnings in the Kaban ─── */
+.earn { margin-top: 18px; padding: 14px; border-radius: 12px; background: linear-gradient(160deg, rgba(63, 143, 88, 0.14), rgba(214, 178, 94, 0.06)); border: 1px solid rgba(143, 209, 158, 0.3); }
+.earn h4 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: #8fd19e; margin-bottom: 10px; }
+.earn__tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.earn__tiles div { padding: 10px 12px; border-radius: 10px; background: rgba(0, 0, 0, 0.25); }
+.earn__tiles small { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.earn__tiles b { font-size: 22px; font-family: var(--font-display, serif); color: #8fd19e; }
+.earn__tiles b.is-soon { color: #f1dfae; }
+.earn__tiles em { display: block; font-style: normal; font-size: 11px; opacity: 0.7; }
+@media (max-width: 900px) { .earn__tiles { grid-template-columns: repeat(2, 1fr); } }
+
+/* ─── Portfolio states ─── */
+.portfolio li.is-trouble { border-color: rgba(214, 178, 94, 0.5); }
+.portfolio li.is-failed { opacity: 0.6; border-color: rgba(224, 128, 111, 0.5); }
+.portfolio li.is-failed b { text-decoration: line-through; }
+.portfolio__status.is-trouble { color: #f1c56e; }
+.portfolio__status.is-failed { color: #e0806f; }
+.portfolio__status.is-building { color: #9fb3c8; }
+.portfolio__income em { display: block; font-style: normal; font-size: 11px; font-weight: 500; color: #f1dfae; }
+.payback { display: block; height: 4px; margin-top: 6px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); max-width: 260px; overflow: hidden; }
+.payback i { display: block; height: 100%; background: linear-gradient(90deg, #3f8f58, #8fd19e); }
+
+/* ─── Company concerns ─── */
+.concerns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 14px; font-size: 12px; }
+.concerns span { padding: 4px 10px; border-radius: 14px; background: rgba(224, 128, 111, 0.14); border: 1px solid rgba(224, 128, 111, 0.4); color: #f6d3c9; }
+.concerns em { font-style: normal; opacity: 0.75; }

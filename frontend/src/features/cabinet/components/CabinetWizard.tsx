@@ -6,6 +6,7 @@ import { peso } from '@/features/economy/utils/finance';
 import { Modal } from '@/shared/components/ui/Modal';
 import { candidatesFor, NomineeCard } from './CabinetView';
 import { useTutorialPending } from '@/features/extras/components/Tutorial';
+import { useDayOnePending } from '@/features/extras/components/DayOne';
 
 /**
  * Fills vacant Cabinet posts one at a time in a pop-up: at the start of the term, and again
@@ -20,7 +21,9 @@ export function CabinetWizard() {
   }).map((p) => p.id);
   const key = vacant.join(',');
   const tutorial = useTutorialPending();
-  const show = phase === 'presidency' && !tutorial && !chapterComplete && !flags.game_over && (cabinetWizardForced || (vacant.length > 0 && cabinetPutOff !== key));
+  const dayOne = useDayOnePending();
+  // On Day One the wizard opens only from the checklist.
+  const show = phase === 'presidency' && !tutorial && !chapterComplete && !flags.game_over && (cabinetWizardForced || (!dayOne && vacant.length > 0 && cabinetPutOff !== key));
 
   // The list of posts is fixed when the pop-up opens, so filled posts can still be revisited with Back.
   const [steps, setSteps] = useState<string[]>([]);

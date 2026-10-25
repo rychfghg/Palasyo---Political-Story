@@ -1,5 +1,5 @@
 import type { Effects, StoryEvent } from '@/features/narrative/types/event';
-import { quick, then } from './helpers';
+import { quick, later as then } from './helpers';
 
 /**
  * An income-generating investment. Figures are kept realistic: a state asset returns roughly

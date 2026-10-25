@@ -1,5 +1,5 @@
 import type { StoryEvent } from '@/features/narrative/types/event';
-import { quick, then } from '../chapter1/helpers';
+import { quick, later as then } from '../chapter1/helpers';
 
 /** Chapter 2 extras: more calamities, deeper investigations, and money-making investments to boom — or bust. */
 export const EXTRA_2: StoryEvent[] = [
