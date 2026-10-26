@@ -1,14 +1,21 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
-const MIN = 0.8;
-const MAX = 3;
+const MIN = 0.6;
+const MAX = 6;
 
 /**
  * Lets the player drag the map around and zoom with the mouse wheel, a pinch, or the buttons.
  * A drag never counts as a click, so pins only open when tapped without moving.
  */
-export function PanZoom({ children }: { children: ReactNode }) {
+export function PanZoom({ children, focus, zoom = 1 }: { children: ReactNode; focus?: { x: number; y: number }; zoom?: number }) {
   const [view, setView] = useState({ x: 0, y: 0, k: 1 });
+  // The starting view: centered on `focus` (map units on a 1000×1000 map that fills the width).
+  const home = () => {
+    const w = box.current?.clientWidth ?? 1000;
+    const s = (w / 1000) * zoom;
+    return focus ? { x: (500 - focus.x) * s, y: (500 - focus.y) * s, k: zoom } : { x: 0, y: 0, k: zoom };
+  };
+  useLayoutEffect(() => setView(home()), []); // eslint-disable-line react-hooks/exhaustive-deps
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<number | null>(null);
@@ -74,7 +81,7 @@ export function PanZoom({ children }: { children: ReactNode }) {
       <div className="panzoom__controls" onPointerDown={(e) => e.stopPropagation()}>
         <button onClick={() => zoomAt(view.k * 1.3)} aria-label="Zoom in">＋</button>
         <button onClick={() => zoomAt(view.k / 1.3)} aria-label="Zoom out">−</button>
-        <button onClick={() => setView({ x: 0, y: 0, k: 1 })} aria-label="Reset the map" title="Reset">⟲</button>
+        <button onClick={() => setView(home())} aria-label="Reset the map" title="Reset">⟲</button>
       </div>
     </div>
   );

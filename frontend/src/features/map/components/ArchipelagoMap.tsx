@@ -120,9 +120,11 @@ interface Props {
   embedded?: boolean;
   markers?: MapMarker[];
   onMarkerClick?: (id: string) => void;
+  /** Named buildings drawn on the map (the Palasyo, the Senate, …). */
+  landmarks?: { id: string; name: string; icon: string; x: number; y: number }[];
 }
 
-export function ArchipelagoMap({ focus = 'all', highlight = null, showLabels = true, embedded = false, markers = [], onMarkerClick }: Props) {
+export function ArchipelagoMap({ focus = 'all', highlight = null, showLabels = true, embedded = false, markers = [], onMarkerClick, landmarks = [] }: Props) {
   const shapes = useMemo(() => [...ISLANDS, ...makeIslets()].map((i) => ({ ...i, d: coastline(i) })), []);
   const f = FOCUS[focus];
 
@@ -181,6 +183,14 @@ export function ArchipelagoMap({ focus = 'all', highlight = null, showLabels = t
                     {c.name}
                   </text>
                 )}
+              </g>
+            ))}
+
+            {landmarks.map((l) => (
+              <g key={l.id} transform={`translate(${l.x} ${l.y})`} className="landmark">
+                <circle r="7" className="landmark__base" />
+                <text y="3.5" className="landmark__icon">{l.icon}</text>
+                <text y="16" className="landmark__name">{l.name}</text>
               </g>
             ))}
 

@@ -20,7 +20,7 @@ import { ComingUp } from '@/features/extras/components/ComingUp';
 import { affectsOf } from '@/features/narrative/utils/affects';
 import { ArchipelagoMap } from '@/features/map/components/ArchipelagoMap';
 import { PanZoom } from '@/features/map/components/PanZoom';
-import { deskMarkers } from '@/features/narrative/utils/places';
+import { deskMarkers, LANDMARKS } from '@/features/narrative/utils/places';
 
 export const CATEGORY_LABEL: Record<EventCategory, string> = {
   family: 'Pamilya · Family',
@@ -329,8 +329,8 @@ export function AgendaView() {
         </header>
 
         <div className="desk__stage">
-          <PanZoom>
-            <ArchipelagoMap embedded showLabels markers={markers} onMarkerClick={setOpen} />
+          <PanZoom focus={{ x: 412, y: 340 }} zoom={2.2}>
+            <ArchipelagoMap embedded showLabels markers={markers} onMarkerClick={setOpen} landmarks={LANDMARKS} />
           </PanZoom>
           {s.queue.length > 0 ? (
             <p className="desk__hint">Drag to move · scroll to zoom · click a pin to open a matter</p>

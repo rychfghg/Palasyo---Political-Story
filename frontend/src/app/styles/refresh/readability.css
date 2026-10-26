@@ -60,3 +60,31 @@
 /* No red overlays: the crisis tint and the red stripe on story cards were hard on the eyes. */
 .crisis-tint { display: none !important; }
 .event::after { background: linear-gradient(90deg, #9c7a2c, var(--gold), #9c7a2c) !important; height: 4px; }
+
+/* ═══ Short matter pop-up: story on the left, choices on the right, no outer header ═══ */
+.modal.matter-modal { width: min(880px, 94vw) !important; max-width: 880px !important; max-height: min(74vh, 640px); padding: 0; overflow: hidden auto; }
+.matter-modal .modal__head { position: absolute; top: 8px; right: 8px; margin: 0; z-index: 2; }
+.matter-modal .modal__head > div { display: none; }
+.matter-modal .paper.event { padding: 18px 22px 16px; border-radius: 14px; }
+.matter-modal .paper.event::before { display: none; }
+.matter-modal .event__head { margin-bottom: 4px; padding-right: 36px; }
+.matter-modal .paper__title { font-size: 26px !important; margin: 4px 0 8px; }
+.matter-modal .story__body p { font-size: 14px !important; line-height: 1.5 !important; margin: 0 0 6px; }
+@media (min-width: 900px) {
+  .matter-modal .paper.event { display: grid; grid-template-columns: 1fr 1fr; column-gap: 22px; align-items: start; }
+  .matter-modal .paper.event > :not(.choices):not(.cabinet-scene):not(.drafting) { grid-column: 1; }
+  .matter-modal .paper.event > .choices, .matter-modal .paper.event > .cabinet-scene { grid-column: 2; grid-row: 1 / span 20; margin: 0; }
+}
+.matter-modal .choices { gap: 6px !important; }
+.matter-modal .choice { padding: 8px 12px !important; }
+.matter-modal .choice b { font-size: 15.5px !important; }
+.matter-modal .choice span { font-size: 12.5px !important; }
+.matter-modal .choice__affects, .matter-modal .choice__cost { font-size: 11px !important; margin-top: 2px; }
+.matter-modal .report { padding: 18px 22px; }
+@media (min-width: 900px) {
+  .matter-modal .paper.event { grid-auto-rows: min-content; }
+  .matter-modal .paper.event > .choices, .matter-modal .paper.event > .cabinet-scene { grid-row: 1 / span 6; }
+}
+.matter-modal .paper.event { min-height: 0 !important; }
+.matter-modal .modal__head { z-index: 10; }
+.matter-modal .modal__close { background: rgba(31, 26, 18, 0.12); color: #1f1a12; border-color: rgba(31, 26, 18, 0.25); }

@@ -123,3 +123,54 @@
 .office__top .hud__stat { padding: 6px 10px; }
 .office__top .hud__stat > span, .office__top .hud__stat small:not(.hud__sub) { font-size: 10px; }
 .office__top .hud__stat b { font-size: 15px; }
+
+/* ═══ Map-first desk: the sea fills the whole desk, nothing tilted, no black edges ═══ */
+.desk__main { border: 0; border-radius: 14px; background: #0b2738; }
+.desk__stage { position: absolute; inset: 0; }
+.desk__stage .map-stage--embedded { inset: 0; border-radius: 0; perspective: none; background: #0b2738 !important; }
+.desk__stage .map-stage--embedded .map-camera { transform: none !important; display: grid; place-items: center; }
+.desk__stage .map-stage--embedded .map-plane { width: 100% !important; height: auto !important; aspect-ratio: 1; transform: none !important; animation: none !important; box-shadow: none; }
+.desk__stage .map-vignette { display: none; }
+.desk__stage .map-svg > rect:first-of-type { fill: #0b2738; }
+
+/* The chapter bar and the matters float over the map instead of taking rows from it. */
+.desk__bar { position: absolute; top: 12px; left: 12px; right: 64px; z-index: 3; padding: 8px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(8, 16, 24, 0.88) !important; backdrop-filter: blur(6px); max-width: 720px; }
+.desk__matters { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 3; border: 1px solid var(--line); border-radius: 12px; background: rgba(8, 16, 24, 0.88) !important; backdrop-filter: blur(6px); }
+.desk__hint { bottom: 92px; }
+.desk__done { z-index: 3; }
+
+/* The seats of power in Maynilad. */
+.landmark__base { fill: rgba(8, 16, 24, 0.85); stroke: #d6b25e; stroke-width: 0.8; }
+.landmark__icon { font-size: 8px; text-anchor: middle; }
+.landmark__name { font: 600 5.5px 'Inter', sans-serif; text-anchor: middle; fill: #fff3d0; paint-order: stroke; stroke: rgba(8, 16, 24, 0.9); stroke-width: 1.6px; letter-spacing: 0.02em; }
+/* Pins sized for the zoomed-in capital view. */
+.desk__stage .issue-pin__dot { r: 7; stroke-width: 1.2; }
+.desk__stage .issue-pin:hover .issue-pin__dot { r: 8.5; }
+.desk__stage .issue-pin__pulse { r: 13; stroke-width: 1.2; }
+.desk__stage .issue-pin__mark { font-size: 8px !important; transform: translateY(-4px); }
+.desk__stage .issue-pin__tag { display: none; }
+.desk__stage .city-label { font-size: 7px; }
+.desk__stage .city-label--capital { display: none; }
+
+/* ═══ One-line header ═══ */
+.office { gap: 10px; height: calc(100vh - 40px); }
+.shell__main:has(.office) { padding-top: 14px; padding-bottom: 14px; }
+.office__top--slim { display: flex !important; flex-direction: row !important; align-items: center; gap: 14px; flex-wrap: nowrap; padding: 6px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.office__id { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.office__top--slim .office__title { font-size: 22px; white-space: nowrap; }
+.office__top--slim .diff-badge { margin: 0; }
+.office__top--slim .tabs { flex: 1; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent !important; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+.office__top--slim .tab { padding: 6px 10px !important; font-size: 11.5px !important; white-space: nowrap; }
+.office__top--slim .hud { flex-wrap: nowrap !important; max-width: none !important; gap: 4px !important; flex-shrink: 0; }
+.office__top--slim .hud__stat { padding: 3px 8px !important; display: flex; flex-direction: column; justify-content: center; }
+.office__top--slim .hud__stat > span:first-child, .office__top--slim .hud__stat small { font-size: 9px !important; letter-spacing: 0.06em; }
+.office__top--slim .hud__stat b { font-size: 13px !important; }
+/* Keep the line short: the date and the key numbers; the rest live in the Treasury and Nation pages. */
+.office__top--slim .hud__stat:nth-child(3), .office__top--slim .hud__stat:nth-child(5), .office__top--slim .hud__stat:nth-child(6) { display: none; }
+@media (max-width: 1350px) { .office__top--slim .hud__stat:nth-child(1) { display: none; } }
+@media (max-width: 1100px) {
+  .office__top--slim { flex-wrap: wrap !important; }
+  .office__top--slim .tabs { order: 3; flex-basis: 100%; }
+}
+.desk__stage .map-stage--embedded .map-plane { position: absolute; left: 0; top: 50%; translate: 0 -50%; }
+.desk__stage .issue-pin { animation-delay: 0.1s !important; animation-duration: 0.35s; }
