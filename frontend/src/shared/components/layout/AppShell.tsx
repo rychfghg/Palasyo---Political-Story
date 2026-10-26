@@ -10,7 +10,7 @@ export function AppShell() {
   // Each screen fades in; tabs inside the office share one key so the desk does not flash.
   const screen = useLocation().pathname.split('/')[1] ?? '';
   return (
-    <div className="shell">
+    <div className={`shell ${screen ? 'shell--dim' : ''}`}>
       <ArchipelagoMap focus={mapFocus} highlight={mapHighlight} />
       <SideNav />
       <SidePanel />

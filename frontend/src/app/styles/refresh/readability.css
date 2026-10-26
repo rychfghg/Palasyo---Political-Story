@@ -1,0 +1,62 @@
+/* ─── Readability pass: solid surfaces behind text, a dimmed backdrop map, compact pop-ups ─── */
+
+:root {
+  --text-dim: rgba(239, 230, 208, 0.78);
+  --surface: #0c1520;
+  --surface-2: #111c29;
+  --line: rgba(214, 178, 94, 0.28);
+}
+
+/* The 3D map stays bright only on the main menu; behind game screens it is a quiet backdrop,
+   so its beige islands never sit behind white text. */
+.shell--dim > .map-stage::after { content: ''; position: absolute; inset: 0; background: rgba(3, 8, 13, 0.86); pointer-events: none; z-index: 5; }
+
+/* Solid panels everywhere text sits on the dark theme. */
+.card, .desk__side, .desk__bar, .desk__matters, .chapter-bar, .hud__stat, .legacy__meter, .stat-card, .tabs {
+  background-color: var(--surface) !important;
+}
+.card, .hud__stat { border-color: var(--line); }
+.tabs { border-radius: 12px; padding: 0 6px; border: 1px solid var(--line); }
+.muted { color: var(--text-dim); }
+.desk__panel { background: var(--surface); }
+
+/* Party badges: always readable, whatever the party color. */
+.badge { color: #fff !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 0 1px #000; }
+.nominee span[style] { filter: brightness(1.7); }
+
+/* Pop-ups: small and centered. Long content scrolls inside the pop-up, never the page. */
+.modal-backdrop { padding: 16px; background: rgba(2, 6, 10, 0.8); }
+.modal {
+  width: min(560px, 94vw);
+  max-height: min(78vh, 720px);
+  padding: 18px 20px 16px;
+  background: var(--surface-2);
+  color: #efe6d0;
+}
+.modal__head { margin-bottom: 10px; }
+.modal__head h2 { font-size: 22px; }
+.modal .kicker { font-size: 11px; }
+.modal p, .modal li { font-size: 14px; line-height: 1.55; }
+
+/* Medium pop-ups: the matter you are reading, advisers, press, phone. */
+.matter-modal, .reactions-modal, .press-modal, .phone-modal, .dayone-modal, .tutorial-modal, .warn-modal, .endgame-modal { width: min(680px, 94vw) !important; max-width: 680px !important; }
+/* Work screens that need room (budget, campaign, Cabinet, month summary) stay wider but never taller than the screen. */
+.budget-modal, .campaign-modal, .frontpage-modal, .cabinet-wizard, .sona-modal, .offices-modal { width: min(940px, 94vw) !important; max-width: 940px !important; max-height: min(84vh, 820px); }
+
+/* The matter card inside its pop-up: tighter so it fits without scrolling. */
+.matter-modal .paper { padding: 20px 24px; }
+.matter-modal .paper__title { font-size: 28px; }
+.matter-modal .story__body p { font-size: 15px; line-height: 1.55; margin-bottom: 8px; }
+.matter-modal .choices { gap: 8px; }
+.matter-modal .choice { padding: 10px 14px; }
+.matter-modal .choice b { font-size: 17px; }
+.matter-modal .choice span { font-size: 13px; }
+
+/* Paper cards keep dark ink. */
+.paper, .paper p, .paper li, .paper b { color: #1f1a12; }
+.paper .muted, .paper small { color: #5a4f3c; }
+.paper .kicker { color: #8a6a22; }
+
+/* No red overlays: the crisis tint and the red stripe on story cards were hard on the eyes. */
+.crisis-tint { display: none !important; }
+.event::after { background: linear-gradient(90deg, #9c7a2c, var(--gold), #9c7a2c) !important; height: 4px; }

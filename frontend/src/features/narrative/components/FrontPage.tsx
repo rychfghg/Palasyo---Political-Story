@@ -103,6 +103,8 @@ export function FrontPage() {
         })}
       </div>
 
+      <details className="summary-more">
+        <summary>Show the full report: economy, central bank, texts, warnings</summary>
       <div className="summary-grid">
         <section className="paper-econ">
           <b>💰 Ulat Pang-ekonomiya · {monthLabel(r.month)}</b>
@@ -147,6 +149,7 @@ export function FrontPage() {
           </section>
         )}
       </div>
+      </details>
       <div className="wizard-foot">
         <span className="muted">Everything that happened last month, in one place.</span>
         <button className="btn btn--primary btn--small" onClick={() => setSeen(r.month)}>Read the Agenda</button>

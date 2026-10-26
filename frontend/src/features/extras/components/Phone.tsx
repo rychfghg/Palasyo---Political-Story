@@ -12,6 +12,7 @@ export function Phone() {
   const s = useGameStore() as unknown as CampaignState;
   const { replyMessage, markInboxRead } = useGameStore();
   const [open, setOpen] = useState(false);
+  const phase = useGameStore((x) => x.phase);
   const [result, setResult] = useState<Record<string, string>>({});
   const inbox = s.inbox ?? [];
   const waiting = inbox.filter((m) => m.answered === undefined && !m.expired);
@@ -20,9 +21,9 @@ export function Phone() {
 
   return (
     <>
-      {/* The phone only appears in the side bar when someone is waiting for a reply. */}
-      {(waiting.length > 0 || open) && (
-        <button className="sidenav__btn phone-nav has-new" onClick={() => setOpen(true)} aria-label="Open your phone" title="Phone">
+      {/* The phone is always in the side bar while you are in office; it glows when someone is waiting. */}
+      {(phase === 'presidency' || inbox.length > 0) && (
+        <button className={`sidenav__btn phone-nav ${waiting.length ? 'has-new' : ''}`} onClick={() => setOpen(true)} aria-label="Open your phone" title="Phone">
           <span className="phone-nav__icon" aria-hidden>📱</span>
           <span>Phone</span>
           {(unread || waiting.length) > 0 && <i>{Math.max(unread, waiting.length)}</i>}

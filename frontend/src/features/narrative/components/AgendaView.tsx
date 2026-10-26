@@ -19,6 +19,7 @@ import { CabinetScene } from '@/features/extras/components/CabinetScene';
 import { ComingUp } from '@/features/extras/components/ComingUp';
 import { affectsOf } from '@/features/narrative/utils/affects';
 import { ArchipelagoMap } from '@/features/map/components/ArchipelagoMap';
+import { PanZoom } from '@/features/map/components/PanZoom';
 import { deskMarkers } from '@/features/narrative/utils/places';
 
 export const CATEGORY_LABEL: Record<EventCategory, string> = {
@@ -287,7 +288,7 @@ export function AgendaView() {
   const [showVitals, setShowVitals] = useState(false);
   // Which matter is open in the pop-up, and which side panel is showing.
   const [open, setOpen] = useState<string | null>(null);
-  const [side, setSide] = useState<SideTab>('polls');
+  const [side, setSide] = useState<SideTab | null>(null);
   const reactionsPending = useReactionsPending();
   const reviewSeen = useUiStore((u) => u.reviewSeen);
 
@@ -328,9 +329,11 @@ export function AgendaView() {
         </header>
 
         <div className="desk__stage">
-          <ArchipelagoMap embedded showLabels markers={markers} onMarkerClick={setOpen} />
+          <PanZoom>
+            <ArchipelagoMap embedded showLabels markers={markers} onMarkerClick={setOpen} />
+          </PanZoom>
           {s.queue.length > 0 ? (
-            <p className="desk__hint">Click a pin on the map — or a matter below — to open it.</p>
+            <p className="desk__hint">Drag to move · scroll to zoom · click a pin to open a matter</p>
           ) : (
             <div className="desk__done"><MonthDone /></div>
           )}
@@ -357,19 +360,24 @@ export function AgendaView() {
         )}
       </section>
 
-      <aside className="desk__side">
-        <nav className="desk__tabs" role="tablist">
-          {SIDE_TABS.map(([id, label]) => (
-            <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'is-active' : ''} onClick={() => setSide(id)}>{label}</button>
+      {/* Panels fold into a slim rail so the map gets the whole desk; one opens over the map at a time. */}
+      <aside className={`desk__side ${side ? 'is-open' : ''}`}>
+        <nav className="desk__rail" aria-label="Desk panels">
+          {SIDE_TABS.map(([id, label, icon]) => (
+            <button key={id} aria-pressed={side === id} className={side === id ? 'is-active' : ''} onClick={() => setSide(side === id ? null : id)} title={label}>
+              <span aria-hidden>{icon}</span>
+              <small>{label}</small>
+            </button>
           ))}
         </nav>
-        <div className="desk__panel">
+        {side && <div className="desk__panel">
+          <header className="desk__panel-head"><b>{SIDE_TABS.find((x) => x[0] === side)?.[1]}</b><button onClick={() => setSide(null)} aria-label="Close panel">✕</button></header>
           {side === 'polls' && <PollsCard />}
           {side === 'coming' && <ComingUp />}
           {side === 'climate' && <Gauges />}
           {side === 'world' && <><SocialTrends /><SituationMap /></>}
           {side === 'news' && <Headlines />}
-        </div>
+        </div>}
       </aside>
 
       <FrontPage />
@@ -394,7 +402,7 @@ export function AgendaView() {
 }
 
 type SideTab = 'polls' | 'coming' | 'climate' | 'world' | 'news';
-const SIDE_TABS: [SideTab, string][] = [['polls', 'Polls'], ['coming', 'Next'], ['climate', 'Climate'], ['world', 'Trends'], ['news', 'News']];
+const SIDE_TABS: [SideTab, string, string][] = [['polls', 'Polls', '📊'], ['coming', 'Next', '📅'], ['climate', 'Climate', '🌡️'], ['world', 'Trends', '📈'], ['news', 'News', '📰']];
 
 /** Keys 1–4 pick a choice, when no pop-up is open and the player is not typing. */
 function ChoiceKeys({ count, onPick }: { count: number; onPick: (i: number) => void }) {
