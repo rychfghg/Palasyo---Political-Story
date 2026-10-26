@@ -12,6 +12,9 @@ import { Tutorial } from '@/features/extras/components/Tutorial';
 import { CampaignPlanner } from '@/features/extras/components/Campaign';
 import { SaveWarning } from '@/shared/components/ui/SaveWarning';
 import { DayOne } from '@/features/extras/components/DayOne';
+import { GameMenu } from '@/shared/components/layout/GameMenu';
+import { Phone } from '@/features/extras/components/Phone';
+import { AmbientSound } from '@/features/extras/components/LiveWorld';
 import { SoundCues } from '@/features/extras/components/SoundCues';
 import { PressConference, Sona } from '@/features/extras/components/PressAndSona';
 
@@ -62,6 +65,11 @@ export function OfficePage() {
           <Warnings />
         </nav>
         <TreasuryHud />
+        <div className="office__tools">
+          <AmbientSound />
+          <Phone />
+          <GameMenu />
+        </div>
       </header>
       <div className="office__body">
         <Outlet />

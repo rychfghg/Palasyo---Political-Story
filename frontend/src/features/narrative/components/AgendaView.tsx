@@ -329,35 +329,16 @@ export function AgendaView() {
         </header>
 
         <div className="desk__stage">
-          <PanZoom focus={{ x: 412, y: 340 }} zoom={2.2}>
+          <PanZoom targets={markers} onTarget={setOpen}>
             <ArchipelagoMap embedded showLabels markers={markers} onMarkerClick={setOpen} landmarks={LANDMARKS} />
           </PanZoom>
           {s.queue.length > 0 ? (
-            <p className="desk__hint">Drag to move · scroll to zoom · click a pin to open a matter</p>
+            <p className="desk__hint">Drag to move · scroll to zoom · arrows lead to matters off screen · click a pin to open it</p>
           ) : (
             <div className="desk__done"><MonthDone /></div>
           )}
         </div>
 
-        {s.queue.length > 0 && (
-          <ul className="desk__matters" aria-label="Matters awaiting you">
-            {s.queue.map((id, i) => {
-              const ev = EVENTS_BY_ID[id];
-              if (!ev) return null;
-              return (
-                <li key={id}>
-                  <button className="matter-chip" onClick={() => setOpen(id)} style={{ borderColor: CATEGORY_COLOR[ev.category] }}>
-                    <span className="matter-chip__n" style={{ background: CATEGORY_COLOR[ev.category] }}>{i + 1}</span>
-                    <span className="matter-chip__text">
-                      <small>{CATEGORY_LABEL[ev.category].split(' · ').pop()}</small>
-                      <b>{fill(ev.title, t)}</b>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
       </section>
 
       {/* Panels fold into a slim rail so the map gets the whole desk; one opens over the map at a time. */}

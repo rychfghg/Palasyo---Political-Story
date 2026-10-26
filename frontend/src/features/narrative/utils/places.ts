@@ -58,6 +58,11 @@ const PLACES: [RegExp, () => { x: number; y: number }][] = [
   [/Visara/i, () => at('sugbu')],
 ];
 
+/** The symbol inside each matter's pin. */
+export const CATEGORY_ICON: Partial<Record<EventCategory, string>> = {
+  family: '🏠', congress: '📜', cabinet: '👥', address: '🎙️', crisis: '🔥', calamity: '🌀', media: '📰', scandal: '💰', diplomacy: '🌏', court: '⚖️', economy: '📈', society: '✊', election: '🗳️', chapter: '⭐',
+};
+
 /** When the text names no place, the kind of matter decides which building it belongs to. */
 const BY_CATEGORY: Partial<Record<EventCategory, string>> = {
   court: 'court', cabinet: 'palasyo', address: 'palasyo', family: 'palasyo', media: 'palasyo', scandal: 'justice', economy: 'ministries', election: 'batasan', crisis: 'palasyo', society: 'avenida', diplomacy: 'palasyo', chapter: 'palasyo',
@@ -81,6 +86,6 @@ export function deskMarkers(s: CampaignState, title: (id: string) => string, col
       const n = (seen[key] = (seen[key] ?? -1) + 1);
       // Pins sit just above the building so its name stays readable; extras line up beside the first.
       const side = n === 0 ? 0 : (n % 2 ? 1 : -1) * Math.ceil(n / 2) * 15;
-      return { id, x: p.x + side, y: p.y - 13, label: title(id), color: colors[ev.category], order: i, mark: String(i + 1) };
+      return { id, x: p.x + side, y: p.y - 13, label: title(id), color: colors[ev.category], order: i, icon: CATEGORY_ICON[ev.category] ?? '❗' };
     });
 }

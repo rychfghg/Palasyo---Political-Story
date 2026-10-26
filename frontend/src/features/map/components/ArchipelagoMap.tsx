@@ -110,6 +110,8 @@ export interface MapMarker {
   order: number;
   /** Shown inside the pin (defaults to "!"). */
   mark?: string;
+  /** Draws a map-pin marker with this symbol instead of a round dot. */
+  icon?: string;
 }
 
 interface Props {
@@ -206,9 +208,19 @@ export function ArchipelagoMap({ focus = 'all', highlight = null, showLabels = t
                 onClick={() => onMarkerClick?.(m.id)}
                 onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onMarkerClick?.(m.id)}
               >
+                {m.icon ? (
+                  // A map pin that keeps the same size on screen at any zoom.
+                  <g className="map-pin">
+                    <ellipse className="map-pin__shadow" rx="9" ry="3" />
+                    <path className="map-pin__body" d="M0 0 C -4 -7 -11 -12 -11 -21 A 11 11 0 1 1 11 -21 C 11 -12 4 -7 0 0 Z" style={{ fill: m.color }} />
+                    <circle className="map-pin__face" cy="-21" r="8" />
+                    <text className="map-pin__icon" y="-17.5">{m.icon}</text>
+                  </g>
+                ) : (<>
                 <circle r="32" className="issue-pin__pulse" style={{ stroke: m.color }} />
                 <circle r="16" className="issue-pin__dot" style={{ fill: m.color }} />
                 <text y="7" className="issue-pin__mark">{m.mark ?? '!'}</text>
+                </>)}
                 <g className="issue-pin__tag">
                   <rect x="22" y="-16" rx="4" width={Math.min(330, m.label.length * 9 + 20)} height="30" />
                   <text x="32" y="5">{m.label.length > 34 ? m.label.slice(0, 33) + '…' : m.label}</text>

@@ -4,6 +4,8 @@ import { COUNTRY, TIMELINE } from '@/shared/constants/world';
 import { useGameStore, fullName, type GamePhase } from '@/features/game-engine/store/gameStore';
 import { useUiStore } from '@/app/store/uiStore';
 import { SaveSlots } from '@/features/settings/components/SaveSlots';
+import { Modal } from '@/shared/components/ui/Modal';
+import { SettingsPanel } from '@/features/settings/components/SettingsPanel';
 
 const ROUTE_BY_PHASE: Record<GamePhase, string> = {
   none: '/new',
@@ -19,6 +21,7 @@ export function MainMenu() {
   const location = useLocation();
   const setMap = useUiStore((s) => s.setMap);
   const [confirmNew, setConfirmNew] = useState(false);
+  const [dialog, setDialog] = useState<'load' | 'settings' | null>(null);
   const hasSave = phase !== 'none' && !!player;
 
   useEffect(() => setMap('all'), [setMap]);
@@ -64,12 +67,21 @@ export function MainMenu() {
             New Game
           </button>
         )}
+        <div className="menu__minor">
+          <button className="btn btn--ghost btn--light" onClick={() => setDialog('load')}>Load game</button>
+          <button className="btn btn--ghost btn--light" onClick={() => setDialog('settings')}>Settings</button>
+        </div>
       </div>
-
-      <section className="menu__slots">
-        <h3>Mga Naka-save · Saved games</h3>
-        <SaveSlots compact />
-      </section>
+      {dialog === 'load' && (
+        <Modal title="Mga Naka-save" kicker="Saved games" onClose={() => setDialog(null)}>
+          <SaveSlots compact />
+        </Modal>
+      )}
+      {dialog === 'settings' && (
+        <Modal title="Settings" kicker="Game & display" onClose={() => setDialog(null)} className="settings-modal">
+          <SettingsPanel />
+        </Modal>
+      )}
 
       <footer className="menu__footer">
         <span>Halalan · {TIMELINE.electionDate}</span>
