@@ -114,7 +114,7 @@ export function PanZoom({ children, targets = [], onTarget }: { children: ReactN
       onPointerCancel={(e) => { pointers.current.delete(e.pointerId); drag.current = null; pinch.current = null; }}
     >
       <div
-        className={`panzoom__layer ${glide ? 'is-gliding' : ''}`}
+        className={`panzoom__layer ${glide ? 'is-gliding' : ''} ${view.k < 1.4 ? 'is-far' : ''}`}
         style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`, '--inv': 1 / view.k } as CSSProperties}
       >
         {children}

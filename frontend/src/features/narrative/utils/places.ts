@@ -86,6 +86,6 @@ export function deskMarkers(s: CampaignState, title: (id: string) => string, col
       const n = (seen[key] = (seen[key] ?? -1) + 1);
       // Pins sit just above the building so its name stays readable; extras line up beside the first.
       const side = n === 0 ? 0 : (n % 2 ? 1 : -1) * Math.ceil(n / 2) * 15;
-      return { id, x: p.x + side, y: p.y - 13, label: title(id), color: colors[ev.category], order: i, icon: CATEGORY_ICON[ev.category] ?? '❗' };
+      return { id, x: p.x + side, y: p.y - 8, label: title(id), color: colors[ev.category], order: i, icon: CATEGORY_ICON[ev.category] ?? '❗' };
     });
 }
