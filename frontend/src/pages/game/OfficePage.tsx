@@ -6,7 +6,6 @@ import { TreasuryHud } from '@/features/economy/components/TreasuryHud';
 import { Warnings } from '@/features/economy/components/Warnings';
 import { CabinetWizard } from '@/features/cabinet/components/CabinetWizard';
 import { BudgetModal } from '@/features/budget/components/BudgetModal';
-import { COUNTRY } from '@/shared/constants/world';
 import { OfficesMenu } from './OfficesMenu';
 import { CrisisTint } from '@/features/extras/components/LiveWorld';
 import { Tutorial } from '@/features/extras/components/Tutorial';
@@ -47,23 +46,23 @@ export function OfficePage() {
 
   return (
     <section className="office">
-      <header className="office__top">
-        <div>
-          <p className="kicker kicker--gold">{COUNTRY.palace}</p>
+      {/* One slim line: who you are, where you are, and the numbers that matter. */}
+      <header className="office__top office__top--slim">
+        <div className="office__id">
           <h1 className="office__title">President {player.lastName}</h1>
           <span className={`diff-badge diff-badge--${difficulty}`} title="Difficulty, chosen at the start of the game">{DIFF_LABEL[difficulty] ?? 'Normal'}</span>
         </div>
+        <nav className="tabs" aria-label="Government">
+          {TABS.map((t) => (
+            <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `tab ${isActive ? 'is-active' : ''}`}>
+              {t.label}
+            </NavLink>
+          ))}
+          <OfficesMenu />
+          <Warnings />
+        </nav>
         <TreasuryHud />
       </header>
-      <nav className="tabs" aria-label="Government">
-        {TABS.map((t) => (
-          <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => `tab ${isActive ? 'is-active' : ''}`}>
-            {t.label}
-          </NavLink>
-        ))}
-        <OfficesMenu />
-        <Warnings />
-      </nav>
       <div className="office__body">
         <Outlet />
       </div>
