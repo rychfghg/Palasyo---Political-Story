@@ -169,6 +169,7 @@ export function LegacyGame() {
       <div>
         <b>{heir.name}</b>
         <div className="legacy__bar"><i style={{ width: `${Math.max(0, Math.min(100, support))}%` }} /><em style={{ left: stage === 'president' ? '50%' : '44%' }} /></div>
+        <small className="legacy__goal">Needs {stage === 'president' ? '50%' : '44%'} to win (green line)</small>
         <small>Support {Math.round(support)}% · Campaign fund ₱{money}M{money < 0 ? ' (in debt!)' : ''} · Scandal risk {Math.round(risk * 100)}%</small>
       </div>
     </div>
@@ -219,12 +220,14 @@ export function LegacyGame() {
     <section className="legacy">
       {meter}
       <article className="legacy__card" key={`${stage}-${step}`}>
+        <div className="legacy__steps" aria-hidden>{cards.map((_, i) => <i key={i} className={i < step ? 'is-done' : i === step ? 'is-now' : ''} />)}</div>
         <p className="kicker">{stage === 'president' ? 'Halalan 2039 · President' : 'Halalan 2036 · Senate'} · {step + 1} of {cards.length}</p>
         <h3>{card.title}</h3>
         <p>{card.text}</p>
         <div className="legacy__options">
           {card.options.map((o) => (
-            <button key={o.label} className="choice choice--dark" onClick={() => pick(o)}>
+            <button key={o.label} className="choice legacy__choice" onClick={() => pick(o)}>
+              <kbd className="choice__key" aria-hidden>{card.options.indexOf(o) + 1}</kbd>
               <b>{o.label}</b>
               <span>{o.note}</span>
             </button>

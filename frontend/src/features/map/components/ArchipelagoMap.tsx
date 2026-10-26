@@ -108,6 +108,8 @@ export interface MapMarker {
   color: string;
   /** Stagger index so issues pop up one after another. */
   order: number;
+  /** Shown inside the pin (defaults to "!"). */
+  mark?: string;
 }
 
 interface Props {
@@ -196,7 +198,7 @@ export function ArchipelagoMap({ focus = 'all', highlight = null, showLabels = t
               >
                 <circle r="32" className="issue-pin__pulse" style={{ stroke: m.color }} />
                 <circle r="16" className="issue-pin__dot" style={{ fill: m.color }} />
-                <text y="7" className="issue-pin__mark">!</text>
+                <text y="7" className="issue-pin__mark">{m.mark ?? '!'}</text>
                 <g className="issue-pin__tag">
                   <rect x="22" y="-16" rx="4" width={Math.min(330, m.label.length * 9 + 20)} height="30" />
                   <text x="32" y="5">{m.label.length > 34 ? m.label.slice(0, 33) + '…' : m.label}</text>

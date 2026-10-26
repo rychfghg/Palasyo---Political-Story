@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useUiStore } from '@/app/store/uiStore';
 import { useGameStore } from '@/features/game-engine/store/gameStore';
 import { availableChoices, check, EVENTS_BY_ID, fill, POLITICS_LABELS, tokens } from '@/features/game-engine/engine/engine';
 import { CHAPTER_LAST_MONTH, monthLabel } from '@/features/game-engine/engine/calendar';
@@ -10,13 +11,15 @@ import type { EventCategory, PoliticsKey } from '@/features/narrative/types/even
 import { ChapterEnd } from './ChapterEnd';
 import { NationPulse } from './ClimatePanel';
 import { Modal } from '@/shared/components/ui/Modal';
-import { AdviserReactions } from '@/features/institutions/components/AdviserReactions';
+import { AdviserReactions, useReactionsPending } from '@/features/institutions/components/AdviserReactions';
 import { FrontPage, PollsCard } from './FrontPage';
 import { DraftingTable } from '@/features/extras/components/DraftingTable';
 import { SituationMap, SocialTrends } from '@/features/extras/components/LiveWorld';
 import { CabinetScene } from '@/features/extras/components/CabinetScene';
 import { ComingUp } from '@/features/extras/components/ComingUp';
 import { affectsOf } from '@/features/narrative/utils/affects';
+import { ArchipelagoMap } from '@/features/map/components/ArchipelagoMap';
+import { deskMarkers } from '@/features/narrative/utils/places';
 
 export const CATEGORY_LABEL: Record<EventCategory, string> = {
   family: 'Pamilya · Family',
@@ -282,6 +285,11 @@ export function AgendaView() {
   const refreshQueue = useGameStore((x) => x.refreshQueue);
   const dismissReport = useGameStore((x) => x.dismissReport);
   const [showVitals, setShowVitals] = useState(false);
+  // Which matter is open in the pop-up, and which side panel is showing.
+  const [open, setOpen] = useState<string | null>(null);
+  const [side, setSide] = useState<SideTab>('polls');
+  const reactionsPending = useReactionsPending();
+  const reviewSeen = useUiStore((u) => u.reviewSeen);
 
   // Saves made before the story engine existed start with an empty queue.
   useEffect(() => {
@@ -293,51 +301,100 @@ export function AgendaView() {
   const ch2 = (s.chapter ?? 1) >= 2;
   const progress = ch2 ? Math.min(100, ((s.month - 35) / 36) * 100) : Math.max(0, Math.min(100, ((s.month + 1) / (CHAPTER_LAST_MONTH[1] + 2)) * 100));
 
+  const t = tokens(s);
+  const markers = deskMarkers(s, (id) => fill(EVENTS_BY_ID[id]?.title ?? '', t), CATEGORY_COLOR);
+  // The month summary comes first; the matter pop-up waits for it.
+  const summaryOpen = !!s.monthReport && s.monthReport.month === s.month - 1 && reviewSeen < s.monthReport.month;
+  const reading = summaryOpen ? null : s.lastReport ? s.lastReport.eventId : open && s.queue.includes(open) ? open : null;
+  const closeReport = () => {
+    dismissReport();
+    setOpen(null);
+  };
+
   return (
-    <div className="agenda">
-      <div className="stack">
-        <header className="chapter-bar">
-          <div>
+    <div className="desk">
+      <section className="desk__main">
+        <header className="desk__bar">
+          <div className="desk__chapter">
             <span className="kicker kicker--gold">{ch2 ? CHAPTER_2_TITLE : CHAPTER_1_TITLE}</span>
-            <p className="muted">{ch2 ? CHAPTER_2_SUBTITLE : CHAPTER_1_SUBTITLE}</p>
+            <small className="muted">{ch2 ? CHAPTER_2_SUBTITLE : CHAPTER_1_SUBTITLE}</small>
+            <div className="chapter-bar__progress" title={monthLabel(s.month)}><i style={{ width: `${progress}%` }} /></div>
           </div>
-          <div className="chapter-bar__progress" title={monthLabel(s.month)}>
-            <i style={{ width: `${progress}%` }} />
+          <div className="desk__count">
+            <b>{s.queue.length}</b>
+            <small>{s.queue.length === 1 ? 'matter on the map' : 'matters on the map'}</small>
           </div>
           <button className="btn btn--ghost btn--small btn--light" onClick={() => setShowVitals(true)}>Vital signs</button>
-          <span className="chapter-bar__count">
-            {s.queue.length > 0 ? `${s.queue.length} matter${s.queue.length > 1 ? 's' : ''} awaiting you` : 'No pending matters'}
-          </span>
         </header>
-        {!s.lastReport && <FrontPage />}
-        {s.lastReport ? (
-          <>
-            <ReportCard report={s.lastReport} onClose={dismissReport} />
-            <AdviserReactions />
-          </>
-        ) : s.queue.length > 0 ? (
-          <EventCard eventId={s.queue[0]} />
-        ) : (
-          <MonthDone />
+
+        <div className="desk__stage">
+          <ArchipelagoMap embedded showLabels markers={markers} onMarkerClick={setOpen} />
+          {s.queue.length > 0 ? (
+            <p className="desk__hint">Click a pin on the map — or a matter below — to open it.</p>
+          ) : (
+            <div className="desk__done"><MonthDone /></div>
+          )}
+        </div>
+
+        {s.queue.length > 0 && (
+          <ul className="desk__matters" aria-label="Matters awaiting you">
+            {s.queue.map((id, i) => {
+              const ev = EVENTS_BY_ID[id];
+              if (!ev) return null;
+              return (
+                <li key={id}>
+                  <button className="matter-chip" onClick={() => setOpen(id)} style={{ borderColor: CATEGORY_COLOR[ev.category] }}>
+                    <span className="matter-chip__n" style={{ background: CATEGORY_COLOR[ev.category] }}>{i + 1}</span>
+                    <span className="matter-chip__text">
+                      <small>{CATEGORY_LABEL[ev.category].split(' · ').pop()}</small>
+                      <b>{fill(ev.title, t)}</b>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </div>
+      </section>
+
+      <aside className="desk__side">
+        <nav className="desk__tabs" role="tablist">
+          {SIDE_TABS.map(([id, label]) => (
+            <button key={id} role="tab" aria-selected={side === id} className={side === id ? 'is-active' : ''} onClick={() => setSide(id)}>{label}</button>
+          ))}
+        </nav>
+        <div className="desk__panel">
+          {side === 'polls' && <PollsCard />}
+          {side === 'coming' && <ComingUp />}
+          {side === 'climate' && <Gauges />}
+          {side === 'world' && <><SocialTrends /><SituationMap /></>}
+          {side === 'news' && <Headlines />}
+        </div>
+      </aside>
+
+      <FrontPage />
+      {reading && (
+        <Modal
+          title={s.lastReport ? (reactionsPending ? 'Your advisers react' : 'What happened') : 'On your desk'}
+          kicker={monthLabel(s.month)}
+          onClose={s.lastReport ? closeReport : () => setOpen(null)}
+          className="matter-modal"
+        >
+          {s.lastReport ? (reactionsPending ? <AdviserReactions inline /> : <ReportCard report={s.lastReport} onClose={closeReport} />) : <EventCard eventId={reading} />}
+        </Modal>
+      )}
       {showVitals && (
         <Modal title="Vital signs of the nation" onClose={() => setShowVitals(false)}>
           <NationPulse />
           <p className="muted">Trends over the last twelve months. Green lines are moving the right way; red lines the wrong way.</p>
         </Modal>
       )}
-      <aside className="stack">
-        <PollsCard />
-        <ComingUp />
-        <SituationMap />
-        <SocialTrends />
-        <Gauges />
-        <Headlines />
-      </aside>
     </div>
   );
 }
+
+type SideTab = 'polls' | 'coming' | 'climate' | 'world' | 'news';
+const SIDE_TABS: [SideTab, string][] = [['polls', 'Polls'], ['coming', 'Next'], ['climate', 'Climate'], ['world', 'Trends'], ['news', 'News']];
 
 /** Keys 1–4 pick a choice, when no pop-up is open and the player is not typing. */
 function ChoiceKeys({ count, onPick }: { count: number; onPick: (i: number) => void }) {
@@ -347,7 +404,8 @@ function ChoiceKeys({ count, onPick }: { count: number; onPick: (i: number) => v
       if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
-      if (document.querySelector('.modal-backdrop, [role="dialog"]')) return;
+      // Only when the matter itself is the open pop-up (not the month summary, the tutorial, …).
+      if ([...document.querySelectorAll('[role="dialog"]')].some((d) => !d.querySelector('.choices'))) return;
       const n = Number(e.key);
       if (n >= 1 && n <= Math.min(4, count)) {
         e.preventDefault();

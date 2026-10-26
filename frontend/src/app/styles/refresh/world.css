@@ -109,3 +109,25 @@
 .need.is-low .need__bar i { background: #e0806f; }
 .need.is-good .need__bar i { background: #8fd19e; }
 .need small { font-size: 11px; opacity: 0.7; }
+
+/* Chapter 3: readable choices on the paper card, a step tracker, and a clearer meter. */
+.legacy { max-width: 820px; min-height: calc(100vh - 64px); justify-content: center; }
+.legacy__card { padding: 30px 34px; border-radius: 14px; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55); }
+.legacy__card .kicker { color: #8a6a22; }
+.legacy__card h3 { font-size: 36px; color: #1f1a12; }
+.legacy__card > p { color: #3d3426; font-size: 16px; line-height: 1.6; }
+.legacy__choice { color: #1f1a12; background: rgba(255, 255, 255, 0.45); border: 1px solid rgba(31, 26, 18, 0.18); border-left: 4px solid #9c7a2c; text-align: left; }
+.legacy__choice b { color: #1f1a12; }
+.legacy__choice span { color: #5a4f3c; }
+.legacy__choice:hover { background: rgba(255, 255, 255, 0.8); border-left-color: #b3262e; }
+.legacy__steps { display: flex; gap: 6px; margin-bottom: 12px; }
+.legacy__steps i { flex: 1; height: 4px; border-radius: 2px; background: rgba(31, 26, 18, 0.15); }
+.legacy__steps i.is-done { background: #9c7a2c; }
+.legacy__steps i.is-now { background: #b3262e; }
+.legacy__meter { padding: 16px 20px; }
+.legacy__meter b { font-size: 20px; }
+.legacy__goal { display: block; color: #8fd19e; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.legacy__heir { padding: 22px 14px; }
+.legacy__card.is-result h3 { font-size: 40px; }
+.legacy__card .row { margin-top: 16px; gap: 10px; flex-wrap: wrap; }
+.legacy__choice .choice__key { align-self: flex-start; margin-bottom: 2px; }

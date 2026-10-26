@@ -8,16 +8,26 @@ import { Portrait } from '@/shared/components/ui/Portrait';
 
 const MOOD_LABEL = { happy: 'Pleased', relieved: 'Relieved', neutral: 'Unmoved', worried: 'Worried', disappointed: 'Disappointed', angry: 'Upset' } as const;
 
-/** After every decision, the President's advisers react — in person. */
-export function AdviserReactions() {
+/** The advisers with something to say about the decision just made, and whether they are still waiting to be heard. */
+function useReactions() {
   const s = useGameStore() as unknown as CampaignState;
   const seen = useUiStore((u) => u.reactionSeen);
-  const setSeen = useUiStore((u) => u.setReactionSeen);
   const report = s.lastReport;
   const key = report ? `${report.eventId}:${report.choiceId}:${s.month}` : '';
   // Only advisers with a real reaction appear; the unmoved stay quiet.
   const list = useMemo(() => (report ? adviserReactions(s, report.eventId, report.choiceId).filter((a) => a.mood !== 'neutral') : []), [key]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!report || !list.length || seen === key) return null;
+  return { list, key, pending: !!report && list.length > 0 && seen !== key };
+}
+
+export function useReactionsPending() {
+  return useReactions().pending;
+}
+
+/** After every decision, the President's advisers react — in person. `inline` shows them inside another pop-up. */
+export function AdviserReactions({ inline = false }: { inline?: boolean }) {
+  const setSeen = useUiStore((u) => u.setReactionSeen);
+  const { list, key, pending } = useReactions();
+  if (!pending) return null;
   const against = list.filter((a) => a.mood === 'disappointed' || a.mood === 'angry' || a.mood === 'worried').length;
   const behind = list.length - against;
   // When most of the room is against it, the President may change course — once.
@@ -27,8 +37,8 @@ export function AdviserReactions() {
     useGameStore.getState().reconsider();
   };
 
-  return (
-    <Modal title="Ang Reaksyon ng mga Tagapayo" kicker="Your advisers react" onClose={() => setSeen(key)} className="reactions-modal">
+  const body = (
+    <>
       <div className="adviser-row">
         {list.map((a) => (
           <figure key={a.post} className={`adviser adviser--${a.mood}`}>
@@ -52,6 +62,12 @@ export function AdviserReactions() {
           <button className="btn btn--primary btn--small" onClick={() => setSeen(key)}>{canChange ? 'Stand by it' : 'Continue'}</button>
         </div>
       </div>
+    </>
+  );
+  if (inline) return <div className="reactions-inline">{body}</div>;
+  return (
+    <Modal title="Ang Reaksyon ng mga Tagapayo" kicker="Your advisers react" onClose={() => setSeen(key)} className="reactions-modal">
+      {body}
     </Modal>
   );
 }

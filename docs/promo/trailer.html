@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Palasyo Trailer</title>
+<style>
+  :root { --gold: #d6b25e; --night: #050b11; --text: #efe6d0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--night); color: var(--text); font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; }
+  canvas { width: min(100%, 1280px); aspect-ratio: 16 / 9; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.6); background: #000; }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button { font: 600 14px system-ui; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--gold); background: transparent; color: var(--gold); cursor: pointer; }
+  button.primary { background: var(--gold); color: #1f1a12; }
+  button:disabled { opacity: .4; cursor: default; }
+  #status { color: rgba(239,230,208,.65); font-size: 13px; min-height: 18px; text-align: center; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div class="bar">
+  <button id="play" class="primary">▶ Play trailer</button>
+  <button id="rec">⏺ Record &amp; download video</button>
+</div>
+<div id="status">YouTube / Facebook / website · 1920×1080 · 60 seconds · music &amp; sound effects</div>
+<script>
+// A 60-second trailer that shows how Palasyo is played: read a matter, decide, watch advisers
+// react, see Congress vote, answer texts, end the month, live with consequences, reach an ending.
+const cv = document.getElementById('c');
+const g = cv.getContext('2d');
+const W = 1920, H = 1080, DURATION = 60;
+const SERIF = 'Georgia, "Times New Roman", serif';
+const SANS = '"Arial Black", "Segoe UI", system-ui, sans-serif';
+const UI = 'system-ui, "Segoe UI", sans-serif';
+const GOLD = '#d6b25e', PAPER = '#f1e7cf', INK = '#1f1a12', RED = '#e0453a', GREEN = '#8fd19e', YEL = '#ffd23f';
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = (t) => 1 - Math.pow(1 - clamp(t), 3);
+const back = (t) => { t = clamp(t); const c = 2; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+let shake = 0;
+
+function text(str, x, y, { size = 40, font = UI, color = '#efe6d0', align = 'left', alpha = 1, weight = '600', stroke = 0, spacing = 0 } = {}) {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha = clamp(alpha); g.textAlign = align; g.textBaseline = 'middle';
+  g.font = `${weight} ${size}px ${font}`;
+  if (spacing) g.letterSpacing = spacing + 'px';
+  if (stroke) { g.lineJoin = 'round'; g.lineWidth = stroke; g.strokeStyle = '#000'; g.strokeText(str, x, y); }
+  g.fillStyle = color; g.fillText(str, x, y); g.restore();
+}
+// Splits a line into rows of at most n characters, on word boundaries.
+function wrap(str, n) { const rows = ['']; for (const w of str.split(' ')) { if ((rows[rows.length - 1] + ' ' + w).trim().length > n) rows.push(w); else rows[rows.length - 1] = (rows[rows.length - 1] + ' ' + w).trim(); } return rows; }
+function rrect(x, y, w, h, r) { g.beginPath(); g.roundRect(x, y, w, h, r); }
+function box(x, y, w, h, { fill = 'rgba(255,255,255,.05)', stroke = 'rgba(214,178,94,.25)', r = 14, alpha = 1, lw = 2 } = {}) {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha = clamp(alpha); rrect(x, y, w, h, r); g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } g.restore();
+}
+// Big outlined caption (the narrator), centered, with one highlighted word.
+function caption(words, y, t, size = 64) {
+  if (t < 0) return;
+  const k = back(t / 0.3);
+  g.save(); g.translate(W / 2, y); g.scale(k, k);
+  g.font = `900 ${size}px ${SANS}`;
+  const parts = words.map((w) => (typeof w === 'string' ? { w, hi: false } : { w: w[0], hi: true }));
+  const total = parts.reduce((n, p) => n + g.measureText(p.w + ' ').width, 0);
+  const fit = Math.min(1, (W - 200) / total); g.scale(fit, fit);
+  let x = -total / 2;
+  for (const p of parts) { text(p.w, x, 0, { size, font: SANS, weight: '900', stroke: 12, color: p.hi ? YEL : '#fff' }); x += g.measureText(p.w + ' ').width; }
+  g.restore();
+}
+// Step label in the corner: "STEP 2 · DECIDE".
+function step(n, label, t) {
+  const a = clamp(t / 0.3);
+  box(40, 30, 680, 140, { fill: '#05090f', stroke: null, r: 0, alpha: a });
+  box(60, 55, 600, 90, { fill: '#000', stroke: YEL, r: 45, alpha: a, lw: 3 });
+  text(`STEP ${n}`, 110, 95, { size: 30, font: SANS, weight: '900', color: YEL, alpha: a });
+  text(label, 270, 95, { size: 34, font: SANS, weight: '900', alpha: a });
+}
+// A mouse pointer that glides between points and pulses when it clicks.
+function cursor(path, t) {
+  let x = path[0][0], y = path[0][1], click = -1;
+  for (let i = 1; i < path.length; i++) {
+    const [px, py, at, dur = 0.6, clicks] = path[i];
+    if (t >= at) { const k = ease((t - at) / dur); x = lerp(x, px, k); y = lerp(y, py, k); if (clicks && t >= at + dur) click = t - at - dur; }
+  }
+  if (click >= 0 && click < 0.5) { g.fillStyle = `rgba(255,210,63,${0.6 * (1 - click / 0.5)})`; g.beginPath(); g.arc(x, y, 20 + click * 120, 0, 7); g.fill(); }
+  g.save(); g.translate(x, y); g.beginPath(); g.moveTo(0, 0); g.lineTo(0, 46); g.lineTo(12, 35); g.lineTo(22, 56); g.lineTo(30, 52); g.lineTo(20, 32); g.lineTo(36, 32); g.closePath();
+  g.fillStyle = '#fff'; g.fill(); g.strokeStyle = '#000'; g.lineWidth = 3; g.stroke(); g.restore();
+}
+
+const stars = Array.from({ length: 240 }, () => [Math.random() * W, Math.random() * H, Math.random()]);
+function bg(t, tint = '#0d1824') {
+  const grd = g.createRadialGradient(W / 2, H * 0.45, 80, W / 2, H / 2, W * 0.65);
+  grd.addColorStop(0, tint); grd.addColorStop(1, '#03070b');
+  g.fillStyle = grd; g.fillRect(-60, -60, W + 120, H + 120);
+  for (const [x, y, s] of stars) { g.fillStyle = `rgba(239,230,208,${0.08 + 0.25 * Math.abs(Math.sin(t * s * 2 + x))})`; g.fillRect(x, y, 2, 2); }
+}
+
+// ── The game's desk, recreated: side bar, header numbers, tabs ──
+const HUD = { approval: 58, treasury: 110, debt: 16.1, inflation: 3.1 };
+function desk(alpha = 1, hud = HUD, flashKey = null, ft = 9) {
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha = alpha;
+  // side bar
+  g.fillStyle = 'rgba(3,8,13,.92)'; g.fillRect(0, 0, 110, H);
+  g.fillStyle = 'rgba(214,178,94,.2)'; g.fillRect(110, 0, 2, H);
+  ['🏠', '🎉', '🏛️', '🗺️', '📁', '⚙️', '📱'].forEach((ic, i) => text(ic, 55, 80 + i * 105, { size: 36, align: 'center' }));
+  // header
+  text('PALASYO NG MALAYA', 170, 70, { size: 20, color: GOLD, weight: '700', spacing: 4 });
+  text('President Santos', 170, 125, { size: 60, font: SERIF, weight: '600' });
+  const stats = [['TREASURY', '₱' + hud.treasury.toFixed(0) + 'B', 'treasury'], ['DEBT', '₱' + hud.debt.toFixed(1) + 'T', 'debt'], ['INFLATION', hud.inflation.toFixed(1) + '%', 'inflation'], ['APPROVAL', hud.approval.toFixed(0) + '%', 'approval']];
+  stats.forEach(([l, v, k], i) => {
+    const x = 860 + i * 255, hot = flashKey && flashKey[k] && ft < 1.5;
+    box(x, 50, 235, 110, { fill: hot ? 'rgba(255,210,63,.18)' : 'rgba(255,255,255,.04)', stroke: hot ? YEL : 'rgba(214,178,94,.2)' });
+    text(l, x + 20, 82, { size: 18, color: 'rgba(239,230,208,.6)', weight: '700', spacing: 2 });
+    text(v, x + 20, 128, { size: 40, font: SERIF, weight: '700', color: hot ? (flashKey[k] > 0 ? GREEN : RED) : '#efe6d0' });
+    if (hot) text((flashKey[k] > 0 ? '▲' : '▼'), x + 205, 128, { size: 26, align: 'right', color: flashKey[k] > 0 ? GREEN : RED });
+  });
+  // tabs
+  ['Agenda', 'Congress', 'Senate', 'Supreme Court', 'Bangko Sentral', 'Other offices ▾'].forEach((tb, i) => {
+    const x = 170 + i * 230;
+    text(tb, x + 20, 215, { size: 24, weight: '700', color: i === 0 ? GOLD : 'rgba(239,230,208,.6)' });
+    if (i === 0) { g.fillStyle = GOLD; g.fillRect(x, 238, 170, 4); }
+  });
+  g.restore();
+}
+// A story card in the Agenda.
+function storyCard(x, y, alpha, { cat, catColor, title, body, choices, picked = -1, hints = true }) {
+  box(x, y, 1120, 780, { fill: PAPER, stroke: null, r: 10, alpha });
+  if (alpha <= 0) return;
+  g.save(); g.globalAlpha = alpha;
+  rrect(x + 50, y + 40, cat.length * 15 + 40, 44, 6); g.fillStyle = catColor; g.fill();
+  g.fillStyle = 'linear-gradient'; g.restore();
+  text(cat, x + 70, y + 63, { size: 20, color: '#fff', weight: '800', spacing: 2, alpha });
+  text(title, x + 50, y + 150, { size: 60, font: SERIF, color: INK, weight: '700', alpha });
+  body.forEach((l, i) => text(l, x + 50, y + 225 + i * 42, { size: 28, font: SERIF, color: '#4a4030', weight: '400', alpha }));
+  choices.forEach(([c, h], i) => {
+    const cy = y + 340 + i * 140;
+    box(x + 50, cy, 1020, 120, { fill: picked === i ? 'rgba(214,178,94,.45)' : 'rgba(31,26,18,.05)', stroke: picked === i ? '#9c7a2c' : 'rgba(31,26,18,.2)', r: 10, alpha, lw: 3 });
+    box(x + 75, cy + 22, 36, 36, { fill: 'transparent', stroke: 'rgba(31,26,18,.35)', r: 6, alpha });
+    text(String(i + 1), x + 93, cy + 41, { size: 20, color: '#5a4f3c', align: 'center', weight: '700', alpha });
+    text(c, x + 130, cy + 42, { size: 30, color: INK, weight: '700', alpha });
+    if (hints) text('Affects: ' + h, x + 130, cy + 88, { size: 22, color: '#7a6d55', weight: '500', alpha });
+  });
+}
+
+// ── Scenes ──
+const typhoon = {
+  cat: 'CRISIS · CALAMITY', catColor: '#3d7ab8', title: 'The Storm Hits Visara',
+  body: ['Four provinces are under water. Governors are begging for help.', 'The Treasury has ₱110 billion. It will not be enough.'],
+  choices: [['Declare a state of calamity and spend what it takes', 'the Treasury, the debt, approval'], ['Send the military, keep the budget intact', 'the military, approval'], ['Accept Haizhou’s offer of aid', 'foreign relations, the West Sea']],
+};
+const SCENES = [
+  // HOOK
+  [0, 4, (t) => {
+    bg(t, '#1a0f14');
+    caption(['What', 'if', 'YOU', 'ran', 'the', ['country?']], 420, t, 96);
+    if (t > 1.2) caption(['Every', 'law.', 'Every', 'peso.', 'Every', ['scandal.']], 600, t - 1.2, 64);
+    if (t > 2.4) { text('A political story game set in the Philippines-inspired Republika ng Kapuluan', W / 2, 760, { size: 32, align: 'center', alpha: (t - 2.4) / 0.4, color: 'rgba(239,230,208,.8)' }); }
+  }],
+  // YOUR DESK
+  [4, 9, (t) => {
+    bg(t);
+    desk(ease(t / 0.6));
+    box(170, 280, 1120, 740, { fill: 'rgba(255,255,255,.03)', alpha: ease(t / 0.6) });
+    text('The desk is where you govern.', 230, 400, { size: 44, font: SERIF, alpha: (t - 0.6) / 0.4 });
+    text('Every month, matters land on it: crises, bills, scandals, family.', 230, 470, { size: 30, alpha: (t - 0.9) / 0.4, color: 'rgba(239,230,208,.7)' });
+    // sidebar cards
+    ['POLLS', 'COMING UP', 'SITUATION MAP'].forEach((l, i) => { box(1340, 280 + i * 250, 520, 220, { alpha: ease((t - 0.4 - i * 0.2) / 0.4) }); text(l, 1370, 320 + i * 250, { size: 20, color: GOLD, weight: '800', spacing: 3, alpha: (t - 0.4 - i * 0.2) / 0.4 }); });
+    if (t > 1.5) caption(['This', 'is', 'your', ['desk.']], 900, t - 1.5, 72);
+    // point at the numbers
+    if (t > 2.8) { const a = clamp((t - 2.8) / 0.3); box(850, 40, 1040, 130, { fill: 'transparent', stroke: YEL, alpha: a, lw: 5, r: 18 }); text('The state of the nation, live', 1370, 195, { size: 26, color: YEL, align: 'center', weight: '800', alpha: a }); }
+  }],
+  // STEP 1: READ
+  [9, 15, (t) => {
+    bg(t);
+    desk(1);
+    storyCard(170, 270 + (1 - ease(t / 0.5)) * 300, ease(t / 0.4), typhoon);
+    step(1, 'READ THE MATTER', t);
+    box(1340, 270, 520, 760, { alpha: 1 });
+    text('COMING UP', 1370, 310, { size: 20, color: GOLD, weight: '800', spacing: 3 });
+    [['🗳️', 'Midterm elections', 'Mar 2030'], ['🎙️', 'State of the Nation', 'Jul 2028'], ['🏗️', 'Bicol Rail opens', 'Feb 2028'], ['📸', 'Press conference', 'next month']].forEach(([i, l, d], n) => {
+      text(i, 1370, 380 + n * 70, { size: 28 }); text(l, 1420, 380 + n * 70, { size: 24 }); text(d, 1830, 380 + n * 70, { size: 20, align: 'right', color: 'rgba(239,230,208,.55)' });
+    });
+    text('⏳ 3 consequences still brewing', 1370, 700, { size: 24, color: YEL });
+    if (t > 2.4) caption(['Each', 'choice', 'shows', 'what', 'it', ['affects']], 1010, t - 2.4, 54);
+    if (t > 2.4) box(290, 700, 900, 50, { fill: 'transparent', stroke: YEL, lw: 4, r: 8, alpha: clamp((t - 2.4) / 0.3) * (1 - clamp((t - 5) / 0.5)) });
+  }],
+  // STEP 2: DECIDE + advisers react
+  [15, 22, (t) => {
+    bg(t);
+    const picked = t > 1.6 ? 0 : -1;
+    const k = ease((t - 1.8) / 1.2);
+    desk(1, { approval: 58 + 6 * k, treasury: 110 - 95 * k, debt: 16.1 + 0.08 * k, inflation: 3.1 }, { approval: 1, treasury: -1 }, t - 1.8);
+    storyCard(170, 270, 1 - clamp((t - 2.4) / 0.4) * 0.6, { ...typhoon, picked });
+    step(2, 'DECIDE', t);
+    cursor([[1500, 900], [700, 470, 0.3, 1.0, true]], t);
+    // advisers react
+    const advisers = [['Finance Secretary', '“We just emptied the Treasury. Bond markets will notice.”', RED], ['Executive Secretary', '“The people saw you act. That matters.”', GREEN], ['Your spouse', '“Come home tonight. The children saw the news.”', GOLD]];
+    advisers.forEach(([who, line, c], i) => {
+      const tt = t - 2.6 - i * 0.6; if (tt < 0) return;
+      const x = 1340 - (1 - back(tt / 0.4)) * 400;
+      box(x, 280 + i * 190, 540, 170, { fill: 'rgba(10,16,24,.95)', stroke: c, alpha: clamp(tt / 0.2), lw: 3 });
+      text(who, x + 30, 320 + i * 190, { size: 22, color: c, weight: '800', alpha: clamp(tt / 0.2) });
+      wrap(line, 40).forEach((l, n) => text(l, x + 30, 365 + n * 35 + i * 190, { size: 22, alpha: clamp(tt / 0.2) }));
+    });
+    if (t > 4.6) caption(['Your', 'advisers', ['react.'], 'The', 'numbers', ['move.']], 1000, t - 4.6, 60);
+  }],
+  // STEP 3: CONGRESS VOTES
+  [22, 28, (t) => {
+    bg(t, '#121a26');
+    desk(0.35);
+    step(3, 'CONGRESS VOTES', t);
+    box(260, 230, 1400, 760, { fill: 'rgba(10,16,24,.96)', alpha: ease(t / 0.3) });
+    text('SENATE BILL 1204 · Calamity Fund Act', 320, 300, { size: 26, color: GOLD, weight: '800', spacing: 2, alpha: t / 0.3 });
+    text('The Senate votes', 320, 370, { size: 56, font: SERIF, alpha: t / 0.3 });
+    // 24 senator seats filling in one by one
+    for (let i = 0; i < 24; i++) {
+      const v = clamp((t - 0.8 - i * 0.12) / 0.15), yes = [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 13, 15, 17, 19].includes(i);
+      const x = 340 + (i % 12) * 105, y = 470 + Math.floor(i / 12) * 130;
+      g.fillStyle = v ? (yes ? GREEN : RED) : 'rgba(255,255,255,.1)'; g.beginPath(); g.arc(x + 40, y + 40, 38 * (0.6 + 0.4 * back(v)), 0, 7); g.fill();
+    }
+    const counted = Math.min(24, Math.floor((t - 0.8) / 0.12) + 1);
+    const yesN = [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 13, 15, 17, 19].filter((i) => i < counted).length;
+    text(`YES ${Math.max(0, yesN)}`, 340, 790, { size: 54, font: SANS, weight: '900', color: GREEN });
+    text(`NO ${Math.max(0, counted - yesN)}`, 700, 790, { size: 54, font: SANS, weight: '900', color: RED });
+    if (t > 4) { text('PASSED', 1580, 790, { size: 80, font: SANS, weight: '900', color: GREEN, align: 'right', alpha: (t - 4) / 0.2 }); if (t < 4.2) shake = 0.6; }
+    text('Senators remember favors, threats, and betrayals.', 320, 900, { size: 28, color: 'rgba(239,230,208,.7)', alpha: (t - 1) / 0.4 });
+  }],
+  // PHONE
+  [28, 33, (t) => {
+    bg(t, '#141020');
+    desk(0.35);
+    caption(['People', ['text', 'you.'], 'Ignore', 'them', 'at', 'your', 'peril.'], 160, t, 56);
+    const px = 700, py = 240 + (1 - ease(t / 0.5)) * 700;
+    box(px, py, 520, 800, { fill: '#0b0e14', stroke: '#444', r: 50, lw: 6 });
+    text('Messages', px + 260, py + 70, { size: 28, align: 'center', weight: '800' });
+    const msgs = [['Your brother', 'Kuya, I need the Customs job. Family first, diba?'], ['Gov. Reyes, Visara', 'The relief money never arrived. My people are angry.'], ['Unknown number', 'We know about the account in Nippara.']];
+    msgs.forEach(([who, m], i) => {
+      const tt = t - 0.6 - i * 0.8; if (tt < 0) return;
+      const y = py + 130 + i * 190;
+      box(px + 30, y, 460, 160, { fill: '#1f2633', stroke: null, r: 20, alpha: clamp(tt / 0.2) });
+      text(who, px + 55, y + 35, { size: 22, color: i === 2 ? RED : GOLD, weight: '800', alpha: clamp(tt / 0.2) });
+      wrap(m, 34).forEach((l, n) => text(l, px + 55, y + 80 + n * 35, { size: 22, alpha: clamp(tt / 0.2) }));
+    });
+    if (t > 3.2) { ['Help him', 'Refuse', 'Call him'].forEach((b, i) => { box(px + 30 + i * 155, py + 700, 145, 60, { fill: i === 1 ? YEL : 'rgba(255,255,255,.08)', stroke: null, r: 30, alpha: (t - 3.2) / 0.3 }); text(b, px + 102 + i * 155, py + 730, { size: 20, align: 'center', weight: '800', color: i === 1 ? '#000' : '#fff', alpha: (t - 3.2) / 0.3 }); }); }
+  }],
+  // STEP 4: END THE MONTH → newspapers
+  [33, 40, (t) => {
+    bg(t, '#1a1208');
+    step(4, 'END THE MONTH', t);
+    const papers = [['THE KAPULUAN DAILY', 'SANTOS EMPTIES TREASURY', 'FOR STORM VICTIMS', '#a01d24'], ['THE OPPOSITION HERALD', '₱95 BILLION GONE.', 'WHO PAYS NOW?', '#1f3f73']];
+    papers.forEach(([name, h1, h2, c], i) => {
+      const tt = t - 0.4 - i * 0.5; if (tt < 0) return;
+      const sc = 2 - back(tt / 0.4), rot = (i ? 1 : -1) * (0.05 + (1 - ease(tt / 0.4)) * 0.4);
+      g.save(); g.translate(560 + i * 800, 560); g.rotate(rot); g.scale(sc, sc);
+      rrect(-360, -330, 720, 660, 6); g.fillStyle = PAPER; g.fill();
+      text(name, 0, -280, { size: 28, color: INK, font: SERIF, align: 'center', spacing: 3 });
+      g.fillStyle = INK; g.fillRect(-320, -250, 640, 3);
+      text(h1, 0, -170, { size: 50, color: c, font: SERIF, weight: '900', align: 'center' });
+      text(h2, 0, -100, { size: 50, color: INK, font: SERIF, weight: '900', align: 'center' });
+      g.fillStyle = 'rgba(31,26,18,.12)'; for (let r = 0; r < 9; r++) g.fillRect(-320, -30 + r * 34, r % 3 === 2 ? 400 : 640, 14);
+      g.restore();
+      if (tt > 0.38 && tt < 0.48) shake = 0.7;
+    });
+    if (t > 2.2) {
+      box(460, 900, 1000, 110, { fill: 'rgba(0,0,0,.85)', stroke: GOLD, alpha: (t - 2.2) / 0.3 });
+      [['Approval', '+6', GREEN], ['Debt', '+₱80B', RED], ['Peso', '−1.20', RED], ['Bangko Sentral', 'raises rates', RED]].forEach(([l, v, c], i) => { text(l, 500 + i * 240, 935, { size: 20, color: 'rgba(239,230,208,.6)', alpha: (t - 2.4) / 0.3 }); text(v, 500 + i * 240, 975, { size: 30, color: c, weight: '800', alpha: (t - 2.4) / 0.3 }); });
+    }
+    if (t > 4.5) caption(['Two', 'papers.', 'Two', ['stories.']], 140, t - 4.5, 60);
+  }],
+  // CONSEQUENCES COME BACK
+  [40, 47, (t) => {
+    bg(t, '#1d0909');
+    caption(['8', 'MONTHS', 'LATER'], 180, t, 70);
+    if (t > 0.8) {
+      const a = ease((t - 0.8) / 0.4);
+      storyCard(400, 290 + (1 - a) * 200, a, { cat: 'SCANDAL', catColor: '#d0402f', title: 'The Missing Relief Money', body: ['₱12 billion meant for Visara is gone. The Ombudsman', 'has a list of names — and one of them is your brother’s.'], choices: [['Let the Ombudsman investigate', 'your family, the Ombudsman'], ['Quietly bury the case', 'corruption, the press, what comes later']], hints: true });
+    }
+    if (t > 3.6) caption(['Your', 'past', 'choices', 'come', ['back.']], 1000, t - 3.6, 66);
+    if (t > 3.6 && t < 3.8) shake = 0.5;
+  }],
+  // MONTAGE: the whole government
+  [47, 53, (t) => {
+    bg(t, '#0d1824');
+    caption(['Six', 'years.', 'Every', 'branch', 'of', ['government.']], 150, t, 62);
+    const tiles = [['🏛️', 'Congress & Senate', 'Bills pass or die on real vote counts'], ['⚖️', 'Supreme Court', 'Appoint justices. Survive their rulings.'], ['🏦', 'Bangko Sentral', 'Inflation, the peso, interest rates'], ['🗺️', 'Campaigns', 'Pick provinces, budget and message'], ['🎙️', 'State of the Nation', 'Make promises. Keep them — or not.'], ['🌏', 'Foreign affairs', 'Haizhou, Columbia, the West Sea']];
+    tiles.forEach(([ic, l, d], i) => {
+      const tt = t - 0.4 - i * 0.25; if (tt < 0) return;
+      const x = 160 + (i % 3) * 540, y = 290 + Math.floor(i / 3) * 360;
+      g.save(); g.translate(x + 250, y + 160); g.scale(back(tt / 0.35), back(tt / 0.35));
+      box(-250, -160, 500, 320, { fill: 'rgba(255,255,255,.06)', stroke: 'rgba(214,178,94,.4)', r: 20 });
+      text(ic, 0, -70, { size: 80, align: 'center' });
+      text(l, 0, 30, { size: 34, align: 'center', weight: '800' });
+      text(d, 0, 90, { size: 22, align: 'center', color: 'rgba(239,230,208,.7)' });
+      g.restore();
+    });
+  }],
+  // ENDINGS
+  [53, 57, (t) => {
+    bg(t, '#140d10');
+    caption(['900+', 'story', 'events.', '15', ['endings.']], 160, t, 66);
+    const ends = [['🌅', 'Ama ng Bayan', '#c9932c'], ['🏛️', 'Senator', '#2f5fa7'], ['✈️', 'Exile', '#3d6a8f'], ['⛓️', 'Prison', '#4a4a52'], ['🚁', 'People Power', '#8f1f25'], ['🪖', 'Martial law', '#4b5320']];
+    ends.forEach(([ic, n, c], i) => {
+      const tt = t - 0.4 - i * 0.18; if (tt < 0) return;
+      const x = 150 + i * 280;
+      g.save(); g.translate(x + 125, 560); g.scale(back(tt / 0.3), back(tt / 0.3));
+      box(-125, -190, 250, 380, { fill: c, stroke: null, r: 20 });
+      text(ic, 0, -50, { size: 90, align: 'center' }); text(n, 0, 100, { size: 30, align: 'center', weight: '900' });
+      g.restore();
+    });
+    if (t > 2) caption(['How', 'will', 'history', 'remember', ['you?']], 900, t - 2, 66);
+  }],
+  // CTA
+  [57, 60, (t) => {
+    bg(t, '#0d1824');
+    if (t < 0.15) { g.fillStyle = `rgba(214,178,94,${0.7 * (1 - t / 0.15)})`; g.fillRect(0, 0, W, H); }
+    g.save(); g.translate(W / 2, 420); g.scale(back(t / 0.4), back(t / 0.4));
+    text('PALASYO', 0, 0, { size: 220, font: SERIF, weight: '900', color: GOLD, align: 'center', spacing: 14 }); g.restore();
+    text('A Political Story', W / 2, 590, { size: 64, font: SERIF, weight: '400', align: 'center', alpha: (t - 0.3) / 0.3 });
+    const p = 1 + Math.sin(t * 8) * 0.03;
+    g.save(); g.globalAlpha = clamp((t - 0.6) / 0.3); g.translate(W / 2, 780); g.scale(p, p);
+    rrect(-330, -65, 660, 130, 65); g.fillStyle = YEL; g.fill();
+    text('PLAY FREE NOW ▶', 0, 0, { size: 50, font: SANS, weight: '900', color: '#000', align: 'center' }); g.restore();
+    text('In your browser · No download · Saves offline', W / 2, 900, { size: 30, align: 'center', color: 'rgba(239,230,208,.75)', alpha: (t - 0.9) / 0.3 });
+  }],
+];
+
+let lastScene = -1;
+function draw(time, sfx = false) {
+  let idx = SCENES.findIndex(([a, b]) => time >= a && time < b); if (idx < 0) idx = SCENES.length - 1;
+  const [start, , fn] = SCENES[idx];
+  if (sfx && idx !== lastScene) { whoosh(); if ([6, 7].includes(idx)) impact(); if (idx === 5) buzz(); if (idx === 4) setTimeout(gavel, 4000); }
+  lastScene = idx;
+  g.save();
+  if (shake > 0) { g.translate((Math.random() - 0.5) * 30 * shake, (Math.random() - 0.5) * 30 * shake); shake = Math.max(0, shake - 0.07); }
+  fn(time - start);
+  g.restore();
+  const v = g.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, W * 0.7); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.6)'); g.fillStyle = v; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(0, H - 8, W, 8); g.fillStyle = YEL; g.fillRect(0, H - 8, W * time / DURATION, 8);
+}
+
+// ── audio: music and sound effects ──
+let actx = null, bus = null;
+function noise(sec) { const b = actx.createBuffer(1, actx.sampleRate * sec, actx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; const s = actx.createBufferSource(); s.buffer = b; return s; }
+function whoosh() { if (!actx) return; const n = noise(0.5), f = actx.createBiquadFilter(), gn = actx.createGain(), t = actx.currentTime; f.type = 'bandpass'; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(4000, t + 0.35); gn.gain.setValueAtTime(0.0001, t); gn.gain.linearRampToValueAtTime(0.3, t + 0.2); gn.gain.linearRampToValueAtTime(0.0001, t + 0.45); n.connect(f).connect(gn).connect(bus); n.start(t); }
+function impact() { if (!actx) return; const t = actx.currentTime + 0.4, o = actx.createOscillator(), gn = actx.createGain(); o.frequency.setValueAtTime(90, t); o.frequency.exponentialRampToValueAtTime(30, t + 0.8); gn.gain.setValueAtTime(0.9, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 1); o.connect(gn).connect(bus); o.start(t); o.stop(t + 1); }
+function buzz() { if (!actx) return; for (const d of [0.6, 0.9, 1.4, 1.7, 2.2, 2.5]) { const t = actx.currentTime + d, o = actx.createOscillator(), gn = actx.createGain(); o.type = 'square'; o.frequency.value = 150; gn.gain.setValueAtTime(0.1, t); gn.gain.setValueAtTime(0, t + 0.2); o.connect(gn).connect(bus); o.start(t); o.stop(t + 0.22); } }
+function gavel() { if (!actx || !running) return; for (const d of [0, 0.25]) { const t = actx.currentTime + d, o = actx.createOscillator(), gn = actx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.12); gn.gain.setValueAtTime(0.7, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 0.2); o.connect(gn).connect(bus); o.start(t); o.stop(t + 0.22); } }
+function music() {
+  const c = actx, start = c.currentTime + 0.05, m = c.createGain(); m.gain.value = 0.26; m.connect(bus);
+  const bass = [55, 55, 43.65, 49, 55, 55, 41.2, 49];
+  for (let bar = 0; bar < 30; bar++) {
+    const t0 = start + bar * 2, loud = bar < 2 ? 0.4 : bar < 20 ? 0.7 : 1;
+    for (let i = 0; i < 8; i++) { const tt = t0 + i * 0.25, o = c.createOscillator(), gn = c.createGain(), lp = c.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.value = bass[bar % 8]; lp.type = 'lowpass'; lp.frequency.value = 450 + (bar % 10) * 40; gn.gain.setValueAtTime(0.16 * loud, tt); gn.gain.exponentialRampToValueAtTime(0.001, tt + 0.22); o.connect(lp).connect(gn).connect(m); o.start(tt); o.stop(tt + 0.24); }
+    if (bar >= 2) for (let b = 0; b < 4; b++) { const tt = t0 + b * 0.5, o = c.createOscillator(), gn = c.createGain(); o.frequency.setValueAtTime(140, tt); o.frequency.exponentialRampToValueAtTime(40, tt + 0.2); gn.gain.setValueAtTime(0.6 * loud, tt); gn.gain.exponentialRampToValueAtTime(0.001, tt + 0.28); o.connect(gn).connect(m); o.start(tt); o.stop(tt + 0.3); }
+    const f = [440, 349.2, 392, 329.6][bar % 4];
+    for (const mult of [1, 1.5]) { const o = c.createOscillator(), gn = c.createGain(); o.type = 'triangle'; o.frequency.value = f * mult; gn.gain.setValueAtTime(0.0001, t0); gn.gain.linearRampToValueAtTime(0.045 * loud, t0 + 1); gn.gain.linearRampToValueAtTime(0.0001, t0 + 2); o.connect(gn).connect(m); o.start(t0); o.stop(t0 + 2.05); }
+  }
+  m.gain.setValueAtTime(0.26, start + 56.7); m.gain.linearRampToValueAtTime(0.02, start + 56.9); m.gain.setValueAtTime(0.32, start + 57);
+  m.gain.setValueAtTime(0.32, start + DURATION - 1); m.gain.linearRampToValueAtTime(0.0001, start + DURATION);
+}
+
+let running = false;
+function run(record) {
+  if (running) return;
+  running = true; lastScene = -1;
+  const playBtn = document.getElementById('play'), recBtn = document.getElementById('rec'), status = document.getElementById('status');
+  playBtn.disabled = recBtn.disabled = true;
+  actx = actx ?? new (window.AudioContext || window.webkitAudioContext)();
+  const dest = actx.createMediaStreamDestination();
+  bus = actx.createGain(); bus.connect(dest); bus.connect(actx.destination);
+  music();
+  let recorder = null; const chunks = [];
+  if (record) {
+    const stream = new MediaStream([...cv.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+    const type = ['video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find((t) => MediaRecorder.isTypeSupported(t)) || '';
+    recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 12_000_000 });
+    recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: recorder.mimeType });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'palasyo-trailer.' + (recorder.mimeType.includes('mp4') ? 'mp4' : 'webm'); a.click();
+      status.textContent = 'Video saved to your downloads.';
+    };
+    recorder.start();
+    status.textContent = 'Recording… keep this tab open and visible until it finishes.';
+  }
+  const t0 = performance.now();
+  const frame = () => {
+    const time = (performance.now() - t0) / 1000;
+    draw(Math.min(time, DURATION - 0.01), true);
+    if (time < DURATION) requestAnimationFrame(frame);
+    else { running = false; playBtn.disabled = recBtn.disabled = false; if (recorder) recorder.stop(); }
+  };
+  frame();
+}
+document.getElementById('play').onclick = () => run(false);
+document.getElementById('rec').onclick = () => run(true);
+draw(19);
+</script>
+</body>
+</html>
